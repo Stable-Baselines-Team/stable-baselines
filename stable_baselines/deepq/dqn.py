@@ -264,9 +264,8 @@ class DQN(OffPolicyRLModel):
         else:
             return self._softmax(self.sess.run(tensor, feed_dict={'deepq/observation:0': observation}))[0]
 
-    def save(self, save_path):
-        # params
-        data = {
+    def get_save_data(self):
+        return {
             "checkpoint_path": self.checkpoint_path,
             "param_noise": self.param_noise,
             "learning_starts": self.learning_starts,
@@ -290,10 +289,6 @@ class DQN(OffPolicyRLModel):
             "n_envs": self.n_envs,
             "_vectorize_action": self._vectorize_action
         }
-
-        params = self.sess.run(self.params)
-
-        self._save_to_file(save_path, data=data, params=params)
 
     @classmethod
     def load(cls, load_path, env=None, **kwargs):

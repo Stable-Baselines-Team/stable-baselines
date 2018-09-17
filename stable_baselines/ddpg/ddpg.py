@@ -959,8 +959,8 @@ class DDPG(OffPolicyRLModel):
         else:
             return self.sess.run(self.policy_tf.policy_proba, feed_dict={self.obs_train: observation})[0]
 
-    def save(self, save_path):
-        data = {
+    def get_save_data(self):
+        return {
             "observation_space": self.observation_space,
             "action_space": self.action_space,
             "nb_eval_steps": self.nb_eval_steps,
@@ -989,10 +989,6 @@ class DDPG(OffPolicyRLModel):
             "n_envs": self.n_envs,
             "_vectorize_action": self._vectorize_action
         }
-
-        params = self.sess.run(self.params)
-
-        self._save_to_file(save_path, data=data, params=params)
 
     @classmethod
     def load(cls, load_path, env=None, **kwargs):

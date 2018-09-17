@@ -173,6 +173,15 @@ class BaseRLModel(ABC):
         pass
 
     @abstractmethod
+    def get_save_data(self):
+        """
+        get the parameters of the model to save
+
+        :return: (dict) the save data
+        """
+        pass
+
+    @abstractmethod
     def save(self, save_path):
         """
         Save the current parameters to file
@@ -346,9 +355,11 @@ class ActorCriticRLModel(BaseRLModel):
 
         return actions_proba
 
-    @abstractmethod
     def save(self, save_path):
-        pass
+        data = self.get_save_data()
+        params = self.sess.run(self.params)
+
+        self._save_to_file(save_path, data=data, params=params)
 
     @classmethod
     def load(cls, load_path, env=None, **kwargs):
@@ -386,6 +397,8 @@ class OffPolicyRLModel(BaseRLModel):
                                                policy_base=policy_base)
 
         self.replay_buffer = replay_buffer
+        self.params = None
+        self.sess = None
 
     @abstractmethod
     def setup_model(self):
@@ -403,9 +416,11 @@ class OffPolicyRLModel(BaseRLModel):
     def action_probability(self, observation, state=None, mask=None):
         pass
 
-    @abstractmethod
     def save(self, save_path):
-        pass
+        data = self.get_save_data()
+        params = self.sess.run(self.params)
+
+        self._save_to_file(save_path, data=data, params=params)
 
     @classmethod
     @abstractmethod

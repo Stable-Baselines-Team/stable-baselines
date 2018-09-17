@@ -302,8 +302,8 @@ class ACKTR(ActorCriticRLModel):
 
         return self
 
-    def save(self, save_path):
-        data = {
+    def get_save_data(self):
+        return {
             "gamma": self.gamma,
             "nprocs": self.nprocs,
             "n_steps": self.n_steps,
@@ -321,7 +321,3 @@ class ACKTR(ActorCriticRLModel):
             "n_envs": self.n_envs,
             "_vectorize_action": self._vectorize_action
         }
-
-        params = self.sess.run(self.params)
-
-        self._save_to_file(save_path, data=data, params=params)

@@ -1,113 +1,68 @@
-import tensorflow as tf
-import numpy as np
-import gym
-
-from stable_baselines.common import BaseRLModel, SetVerbosity
-from stable_baselines.common.policies import LstmPolicy, ActorCriticPolicy
+from stable_baselines.common import OffPolicyRLModel
+from stable_baselines.common.vec_env import VecEnv, DummyVecEnv
+from stable_baselines.her.replay_buffer import HindsightExperienceReplayBuffer
+from stable_baselines.her.env_wrapper import HERWrapper
 
 
-def make_sample_her_transitions(replay_strategy, replay_k, reward_fun):
-    """
-    Creates a sample function that can be used for HER experience replay.
+class HER(OffPolicyRLModel):
+    def __init__(self, model, policy, env, verbose=0, _init_setup_model=False, *args, **kwargs):
+        super(HER, self).__init__(policy=None, env=env, replay_buffer=HindsightExperienceReplayBuffer,
+                                  verbose=verbose, policy_base=None, requires_vec_env=False)
 
-    :param replay_strategy: (str) the HER replay strategy; if set to 'none', regular DDPG experience replay is used
-        (can be 'future' or 'none').
-    :param replay_k: (int) the ratio between HER replays and regular replays (e.g. k = 4 -> 4 times
-            as many HER replays as regular replays are used)
-    :param reward_fun: (function (dict, dict): float) function to re-compute the reward with substituted goals
-    """
-    if replay_strategy == 'future':
-        future_p = 1 - (1. / (1 + replay_k))
-    else:  # 'replay_strategy' == 'none'
-        future_p = 0
+        assert issubclass(model, OffPolicyRLModel), \
+            "Error: HER only works with Off policy model (such as DDPG and DQN)."
 
-    def _sample_her_transitions(episode_batch, batch_size_in_transitions):
-        """episode_batch is {key: array(buffer_size x T x dim_key)}
-        """
-        time_horizon = episode_batch['u'].shape[1]
-        rollout_batch_size = episode_batch['u'].shape[0]
-        batch_size = batch_size_in_transitions
-
-        # Select which episodes and time steps to use.
-        episode_idxs = np.random.randint(0, rollout_batch_size, batch_size)
-        t_samples = np.random.randint(time_horizon, size=batch_size)
-        transitions = {key: episode_batch[key][episode_idxs, t_samples].copy()
-                       for key in episode_batch.keys()}
-
-        # Select future time indexes proportional with probability future_p. These
-        # will be used for HER replay by substituting in future goals.
-        her_indexes = np.where(np.random.uniform(size=batch_size) < future_p)
-        future_offset = np.random.uniform(size=batch_size) * (time_horizon - t_samples)
-        future_offset = future_offset.astype(int)
-        future_t = (t_samples + 1 + future_offset)[her_indexes]
-
-        # Replace goal with achieved goal but only for the previously-selected
-        # HER transitions (as defined by her_indexes). For the other transitions,
-        # keep the original goal.
-        future_ag = episode_batch['ag'][episode_idxs[her_indexes], future_t]
-        transitions['g'][her_indexes] = future_ag
-
-        # Reconstruct info dictionary for reward  computation.
-        info = {}
-        for key, value in transitions.items():
-            if key.startswith('info_'):
-                info[key.replace('info_', '')] = value
-
-        # Re-compute reward since we may have substituted the goal.
-        reward_params = {k: transitions[k] for k in ['ag_2', 'g']}
-        reward_params['info'] = info
-        transitions['r'] = reward_fun(**reward_params)
-
-        transitions = {k: transitions[k].reshape(batch_size, *transitions[k].shape[1:])
-                       for k in transitions.keys()}
-
-        assert transitions['u'].shape[0] == batch_size_in_transitions
-
-        return transitions
-
-    return _sample_her_transitions
-
-
-class HER(BaseRLModel):
-    def __init__(self, policy, env, verbose=0, _init_setup_model=True):
-        super().__init__(policy=policy, env=env, verbose=verbose, policy_base=ActorCriticPolicy, requires_vec_env=False)
-
-        self.policy = policy
-
-        self.sess = None
-        self.graph = None
+        self.model_class = model
+        if not isinstance(env, VecEnv):
+            env = DummyVecEnv([lambda: env])
+        env = HERWrapper(env)
+        self.model = model(policy=policy, env=env, verbose=verbose, *args, **kwargs)
 
         if _init_setup_model:
             self.setup_model()
 
     def setup_model(self):
-        with SetVerbosity(self.verbose):
+        self.model.setup_model()
 
-            assert isinstance(self.action_space, gym.spaces.Box), \
-                "Error: HER cannot output a {} action space, only spaces.Box is supported.".format(self.action_space)
-            assert not issubclass(self.policy, LstmPolicy), "Error: cannot use a recurrent policy for the HER model."
-            assert issubclass(self.policy, ActorCriticPolicy), "Error: the input policy for the HER model must be an " \
-                                                               "instance of common.policies.ActorCriticPolicy."
-
-            self.graph = tf.Graph()
-            with self.graph.as_default():
-                pass
-
-    def learn(self, total_timesteps, callback=None, seed=None, log_interval=100, tb_log_name="HER"):
-        with SetVerbosity(self.verbose):
-            self._setup_learn(seed)
-
+    def learn(self, total_timesteps, callback=None, seed=None, log_interval=100, tb_log_name=None):
+        if tb_log_name is None:
+            tb_log_name = "HER_{}".format(self.model_class.__name__)
+        self.model.learn(total_timesteps=total_timesteps, callback=callback, seed=seed, log_interval=log_interval,
+                         tb_log_name=tb_log_name)
         return self
 
     def predict(self, observation, state=None, mask=None, deterministic=False):
-        pass
+        return self.model.predict(observation, state=state, mask=mask, deterministic=deterministic)
 
     def action_probability(self, observation, state=None, mask=None):
-        pass
+        return self.model.action_probability(observation, state=state, mask=mask)
+
+    def get_save_data(self):
+        return {
+            "model_class": self.model_class
+        }
 
     def save(self, save_path):
-        pass
+        data = self.get_save_data()
+        model_data = self.model.get_save_data()
+
+        params = self.model.sess.run(self.model.params)
+
+        self._save_to_file(save_path, data=(data, model_data), params=params)
 
     @classmethod
     def load(cls, load_path, env=None, **kwargs):
-        pass
+        (data, model_data), params = cls._load_from_file(load_path)
+
+        her_model = cls(model=data["model_class"], policy=model_data["policy"], env=None, _init_setup_model=False)
+        her_model.model.__dict__.update(model_data)
+        her_model.model.__dict__.update(kwargs)
+        her_model.model.set_env(env)
+        her_model.setup_model()
+
+        restores = []
+        for param, loaded_p in zip(her_model.model.params, params):
+            restores.append(param.assign(loaded_p))
+        her_model.model.sess.run(restores)
+
+        return her_model

@@ -240,8 +240,8 @@ class A2C(ActorCriticRLModel):
 
         return self
 
-    def save(self, save_path):
-        data = {
+    def get_save_data(self):
+        return {
             "gamma": self.gamma,
             "n_steps": self.n_steps,
             "vf_coef": self.vf_coef,
@@ -258,10 +258,6 @@ class A2C(ActorCriticRLModel):
             "n_envs": self.n_envs,
             "_vectorize_action": self._vectorize_action
         }
-
-        params = self.sess.run(self.params)
-
-        self._save_to_file(save_path, data=data, params=params)
 
 
 class A2CRunner(AbstractEnvRunner):

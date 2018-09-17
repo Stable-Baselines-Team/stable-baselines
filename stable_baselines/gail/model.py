@@ -76,6 +76,9 @@ class GAIL(ActorCriticRLModel):
     def action_probability(self, observation, state=None, mask=None):
         return self.trpo.action_probability(observation, state, mask)
 
+    def get_save_data(self):
+        return {}
+
     def save(self, save_path):
         self.trpo.save(save_path)
 

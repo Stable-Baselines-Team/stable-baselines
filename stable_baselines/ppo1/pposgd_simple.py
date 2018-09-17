@@ -307,8 +307,8 @@ class PPO1(ActorCriticRLModel):
 
         return self
 
-    def save(self, save_path):
-        data = {
+    def get_save_data(self):
+        return {
             "gamma": self.gamma,
             "timesteps_per_actorbatch": self.timesteps_per_actorbatch,
             "clip_param": self.clip_param,
@@ -326,7 +326,3 @@ class PPO1(ActorCriticRLModel):
             "n_envs": self.n_envs,
             "_vectorize_action": self._vectorize_action
         }
-
-        params = self.sess.run(self.params)
-
-        self._save_to_file(save_path, data=data, params=params)
