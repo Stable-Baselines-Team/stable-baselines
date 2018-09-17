@@ -24,7 +24,6 @@ class BaseRLModel(ABC):
     :param requires_vec_env: (bool) Does this model require a vectorized environment
     :param policy_base: (BasePolicy) the base policy used by this method
     """
-
     def __init__(self, policy, env, verbose=0, *, requires_vec_env, policy_base):
         if isinstance(policy, str):
             self.policy = get_policy_from_name(policy_base, policy)

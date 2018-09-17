@@ -1,28 +1,48 @@
 from stable_baselines.common import OffPolicyRLModel
 from stable_baselines.common.vec_env import VecEnv, DummyVecEnv
-from stable_baselines.her.replay_buffer import HindsightExperienceReplayBuffer
+from stable_baselines.her.replay_buffer import make_her_buffer
 from stable_baselines.her.env_wrapper import HERWrapper
 
 
 class HER(OffPolicyRLModel):
-    def __init__(self, model, policy, env, verbose=0, _init_setup_model=False, *args, **kwargs):
-        super(HER, self).__init__(policy=None, env=env, replay_buffer=HindsightExperienceReplayBuffer,
+    """
+
+    :param model: (OffPolicyRLModel)
+    :param policy: (BasePolicy)
+    :param env: (Gym Environment)
+    :param reward_function: (HERRewardFunctions)
+    :param verbose: (int)
+    :param _init_setup_model: (bool)
+    :param *args: positional arguments for the model
+    :param **kwargs: keyword arguments for the model
+    """
+    def __init__(self, model, policy, env, reward_function, verbose=0, _init_setup_model=False, *args, **kwargs):
+        super(HER, self).__init__(policy=None, env=env, replay_buffer=None,
                                   verbose=verbose, policy_base=None, requires_vec_env=False)
 
         assert issubclass(model, OffPolicyRLModel), \
             "Error: HER only works with Off policy model (such as DDPG and DQN)."
 
+        self.reward_function = reward_function
         self.model_class = model
+
         if not isinstance(env, VecEnv):
             env = DummyVecEnv([lambda: env])
-        env = HERWrapper(env)
-        self.model = model(policy=policy, env=env, verbose=verbose, *args, **kwargs)
+        env = HERWrapper(env, reward_function)
+        self.model = model(policy=policy, env=env, verbose=verbose, replay_buffer=make_her_buffer(reward_function),
+                           *args, **kwargs)
 
         if _init_setup_model:
             self.setup_model()
 
     def setup_model(self):
+        self.reward_function.set_env(self.env)
         self.model.setup_model()
+
+    def set_env(self, env):
+        super().set_env(env)
+        self.reward_function.set_env(env)
+        self.model.set_env(env)
 
     def learn(self, total_timesteps, callback=None, seed=None, log_interval=100, tb_log_name=None):
         if tb_log_name is None:
@@ -39,7 +59,8 @@ class HER(OffPolicyRLModel):
 
     def get_save_data(self):
         return {
-            "model_class": self.model_class
+            "model_class": self.model_class,
+            "reward_function": self.reward_function,
         }
 
     def save(self, save_path):

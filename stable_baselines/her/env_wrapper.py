@@ -1,10 +1,11 @@
 from gym import spaces
+import numpy as np
 
 from stable_baselines.common.vec_env.base_vec_env import VecEnvWrapper
 
 
 class HERWrapper(VecEnvWrapper):
-    def __init__(self, venv):
+    def __init__(self, venv, reward_function):
         if isinstance(venv.observation_space, spaces.Discrete):
             observation_space = spaces.MultiDiscrete([venv.observation_space.n] * 2)
         elif isinstance(venv.observation_space, spaces.Box):
@@ -26,11 +27,34 @@ class HERWrapper(VecEnvWrapper):
         else:
             raise ValueError("Error: observation space {} not supported for HER.".format(venv.observation_space))
 
-        observation_space = observation_space
-        super().__init__(venv, observation_space, venv.action_space)
+        self.observation_space = observation_space
+        super().__init__(venv, self.observation_space, venv.action_space)
+        self.reward_function = reward_function
+        self.actions = None
+        self.goal = self.venv.observation_space.sample()
 
-    def reset(self):
-        pass
+    def step_async(self, actions):
+        self.actions = actions
 
     def step_wait(self):
-        pass
+        obs, rew, done, info = self.venv.step(self.actions)
+        rew = self.reward_function.get_reward(obs, self.actions, self.goal)
+        # stack the goal to the observation and reshape it to the right size
+        obs_goal = np.stack([obs, self.goal], axis=-1).reshape(obs.shape[:-1] + (obs.shape[-1] * 2,))
+        return obs_goal, rew, done, info
+
+    def reset(self):
+        obs = self.venv.reset()
+        self.goal = self.venv.observation_space.sample()
+        # stack the goal to the observation and reshape it to the right size
+        obs_goal = np.stack([obs, self.goal], axis=-1).reshape(obs.shape[:-1] + (obs.shape[-1] * 2,))
+        return obs_goal
+
+    def close(self):
+        return
+
+    def get_images(self):
+        return self.venv.get_images()
+
+    def render(self, *args, **kwargs):
+        return self.venv.render(*args, **kwargs)
