@@ -3,6 +3,7 @@ import argparse
 from stable_baselines import bench, logger
 from stable_baselines.common import set_global_seeds
 from stable_baselines.common.atari_wrappers import make_atari
+from stable_baselines.common.replay_buffer import ReplayBuffer, PrioritizedReplayBuffer
 from stable_baselines.deepq import DQN, wrap_atari_dqn, CnnPolicy
 
 
@@ -27,9 +28,15 @@ def main():
     env = bench.Monitor(env, logger.get_dir())
     env = wrap_atari_dqn(env)
 
+    if args.prioritized:
+        replay_buffer = PrioritizedReplayBuffer
+    else:
+        replay_buffer = ReplayBuffer
+
     model = DQN(
         env=env,
         policy=CnnPolicy,
+        replay_buffer=replay_buffer,
         learning_rate=1e-4,
         buffer_size=10000,
         exploration_fraction=0.1,
@@ -38,7 +45,6 @@ def main():
         learning_starts=10000,
         target_network_update_freq=1000,
         gamma=0.99,
-        prioritized_replay=bool(args.prioritized),
         prioritized_replay_alpha=args.prioritized_replay_alpha,
         checkpoint_freq=args.checkpoint_freq,
         checkpoint_path=args.checkpoint_path,

@@ -6,7 +6,7 @@ from stable_baselines import logger, deepq
 from stable_baselines.common import tf_util, OffPolicyRLModel, SetVerbosity, TensorboardWriter
 from stable_baselines.common.vec_env import VecEnv
 from stable_baselines.common.schedules import LinearSchedule
-from stable_baselines.deepq.replay_buffer import ReplayBuffer, PrioritizedReplayBuffer
+from stable_baselines.common.replay_buffer import ReplayBuffer, PrioritizedReplayBuffer
 from stable_baselines.deepq.policies import DQNPolicy
 from stable_baselines.a2c.utils import find_trainable_variables, total_episode_reward_logger
 
@@ -17,6 +17,7 @@ class DQN(OffPolicyRLModel):
 
     :param policy: (DeepQPolicy or str) The policy model to use (MlpPolicy, CnnPolicy, LnMlpPolicy, ...)
     :param env: (Gym environment or str) The environment to learn from (if registered in Gym, can be str)
+    :param replay_buffer: (ReplayBuffer) The type of replay buffer to use
     :param gamma: (float) discount factor
     :param learning_rate: (float) learning rate for adam optimizer
     :param buffer_size: (int) size of the replay buffer
@@ -32,7 +33,6 @@ class DQN(OffPolicyRLModel):
             directory.
     :param learning_starts: (int) how many steps of the model to collect transitions for before learning starts
     :param target_network_update_freq: (int) update the target network every `target_network_update_freq` steps.
-    :param prioritized_replay: (bool) if True prioritized replay buffer will be used.
     :param prioritized_replay_alpha: (float) alpha parameter for prioritized replay buffer
     :param prioritized_replay_beta0: (float) initial value of beta for prioritized replay buffer
     :param prioritized_replay_beta_iters: (int) number of iterations over which beta will be annealed from initial
@@ -44,22 +44,20 @@ class DQN(OffPolicyRLModel):
     :param _init_setup_model: (bool) Whether or not to build the network at the creation of the instance
     """
 
-    def __init__(self, policy, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, exploration_fraction=0.1,
-                 exploration_final_eps=0.02, train_freq=1, batch_size=32, checkpoint_freq=10000, checkpoint_path=None,
-                 learning_starts=1000, target_network_update_freq=500, prioritized_replay=False,
+    def __init__(self, policy, env, replay_buffer=ReplayBuffer, gamma=0.99, learning_rate=5e-4, buffer_size=50000,
+                 exploration_fraction=0.1, exploration_final_eps=0.02, train_freq=1, batch_size=32,
+                 checkpoint_freq=10000, checkpoint_path=None, learning_starts=1000, target_network_update_freq=500,
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_beta_iters=None,
                  prioritized_replay_eps=1e-6, param_noise=False, verbose=0, tensorboard_log=None,
                  _init_setup_model=True):
 
-        # TODO: replay_buffer refactoring
-        super(DQN, self).__init__(policy=policy, env=env, replay_buffer=None, verbose=verbose, policy_base=DQNPolicy,
-                                  requires_vec_env=False)
+        super(DQN, self).__init__(policy=policy, env=env, replay_buffer=replay_buffer, verbose=verbose,
+                                  policy_base=DQNPolicy, requires_vec_env=False)
 
         self.checkpoint_path = checkpoint_path
         self.param_noise = param_noise
         self.learning_starts = learning_starts
         self.train_freq = train_freq
-        self.prioritized_replay = prioritized_replay
         self.prioritized_replay_eps = prioritized_replay_eps
         self.batch_size = batch_size
         self.target_network_update_freq = target_network_update_freq
@@ -79,7 +77,7 @@ class DQN(OffPolicyRLModel):
         self._train_step = None
         self.update_target = None
         self.act = None
-        self.replay_buffer = None
+        self.replay_buffer_obj = None
         self.beta_schedule = None
         self.exploration = None
         self.params = None
@@ -127,15 +125,15 @@ class DQN(OffPolicyRLModel):
             self._setup_learn(seed)
 
             # Create the replay buffer
-            if self.prioritized_replay:
-                self.replay_buffer = PrioritizedReplayBuffer(self.buffer_size, alpha=self.prioritized_replay_alpha)
+            if issubclass(self.replay_buffer, PrioritizedReplayBuffer):
+                self.replay_buffer_obj = self.replay_buffer(self.buffer_size, alpha=self.prioritized_replay_alpha)
                 if self.prioritized_replay_beta_iters is None:
                     prioritized_replay_beta_iters = total_timesteps
                     self.beta_schedule = LinearSchedule(prioritized_replay_beta_iters,
                                                         initial_p=self.prioritized_replay_beta0,
                                                         final_p=1.0)
             else:
-                self.replay_buffer = ReplayBuffer(self.buffer_size)
+                self.replay_buffer_obj = self.replay_buffer(self.buffer_size)
                 self.beta_schedule = None
             # Create the schedule for exploration starting from 1.
             self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
@@ -173,7 +171,7 @@ class DQN(OffPolicyRLModel):
                 reset = False
                 new_obs, rew, done, _ = self.env.step(env_action)
                 # Store transition in the replay buffer.
-                self.replay_buffer.add(obs, action, rew, new_obs, float(done))
+                self.replay_buffer_obj.add(obs, action, rew, new_obs, float(done))
                 obs = new_obs
 
                 if writer is not None:
@@ -191,11 +189,11 @@ class DQN(OffPolicyRLModel):
 
                 if step > self.learning_starts and step % self.train_freq == 0:
                     # Minimize the error in Bellman's equation on a batch sampled from replay buffer.
-                    if self.prioritized_replay:
-                        experience = self.replay_buffer.sample(self.batch_size, beta=self.beta_schedule.value(step))
+                    if issubclass(self.replay_buffer, PrioritizedReplayBuffer):
+                        experience = self.replay_buffer_obj.sample(self.batch_size, beta=self.beta_schedule.value(step))
                         (obses_t, actions, rewards, obses_tp1, dones, weights, batch_idxes) = experience
                     else:
-                        obses_t, actions, rewards, obses_tp1, dones = self.replay_buffer.sample(self.batch_size)
+                        obses_t, actions, rewards, obses_tp1, dones = self.replay_buffer_obj.sample(self.batch_size)
                         weights, batch_idxes = np.ones_like(rewards), None
 
                     if writer is not None:
@@ -216,9 +214,9 @@ class DQN(OffPolicyRLModel):
                         _, td_errors = self._train_step(obses_t, actions, rewards, obses_tp1, obses_tp1, dones, weights,
                                                         sess=self.sess)
 
-                    if self.prioritized_replay:
+                    if issubclass(self.replay_buffer, PrioritizedReplayBuffer):
                         new_priorities = np.abs(td_errors) + self.prioritized_replay_eps
-                        self.replay_buffer.update_priorities(batch_idxes, new_priorities)
+                        self.replay_buffer_obj.update_priorities(batch_idxes, new_priorities)
 
                 if step > self.learning_starts and step % self.target_network_update_freq == 0:
                     # Update target network periodically.
@@ -273,7 +271,7 @@ class DQN(OffPolicyRLModel):
             "param_noise": self.param_noise,
             "learning_starts": self.learning_starts,
             "train_freq": self.train_freq,
-            "prioritized_replay": self.prioritized_replay,
+            "replay_buffer": self.replay_buffer,
             "prioritized_replay_eps": self.prioritized_replay_eps,
             "batch_size": self.batch_size,
             "target_network_update_freq": self.target_network_update_freq,

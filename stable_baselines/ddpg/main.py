@@ -9,9 +9,9 @@ from mpi4py import MPI
 
 from stable_baselines import logger, bench
 from stable_baselines.common.misc_util import set_global_seeds, boolean_flag
+from stable_baselines.common.replay_buffer import ReplayBuffer
 from stable_baselines.ddpg.policies import MlpPolicy, LnMlpPolicy
 from stable_baselines.ddpg import DDPG
-from stable_baselines.ddpg.memory import Memory
 from stable_baselines.ddpg.noise import AdaptiveParamNoiseSpec, OrnsteinUhlenbeckActionNoise, NormalActionNoise
 
 
@@ -87,7 +87,7 @@ def run(env_id, seed, noise_type, layer_norm, evaluation, **kwargs):
     num_timesteps = kwargs['num_timesteps']
     del kwargs['num_timesteps']
 
-    model = DDPG(policy=policy, env=env, memory_policy=Memory, eval_env=eval_env, param_noise=param_noise,
+    model = DDPG(policy=policy, env=env, replay_buffer=ReplayBuffer, eval_env=eval_env, param_noise=param_noise,
                  action_noise=action_noise, memory_limit=int(1e6), verbose=2, **kwargs)
     model.learn(total_timesteps=num_timesteps)
     env.close()

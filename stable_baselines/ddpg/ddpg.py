@@ -14,10 +14,10 @@ from stable_baselines import logger
 from stable_baselines.common import tf_util, OffPolicyRLModel, SetVerbosity, TensorboardWriter
 from stable_baselines.common.vec_env import VecEnv
 from stable_baselines.common.mpi_adam import MpiAdam
+from stable_baselines.common.replay_buffer import ReplayBuffer, PrioritizedReplayBuffer
 from stable_baselines.ddpg.policies import DDPGPolicy
 from stable_baselines.common.mpi_running_mean_std import RunningMeanStd
 from stable_baselines.a2c.utils import find_trainable_variables, total_episode_reward_logger
-from stable_baselines.ddpg.memory import Memory
 
 
 def normalize(tensor, stats):
@@ -138,8 +138,8 @@ class DDPG(OffPolicyRLModel):
 
     :param policy: (DDPGPolicy or str) The policy model to use (MlpPolicy, CnnPolicy, LnMlpPolicy, ...)
     :param env: (Gym environment or str) The environment to learn from (if registered in Gym, can be str)
+    :param replay_buffer: (ReplayBuffer) The type of replay buffer to use
     :param gamma: (float) the discount rate
-    :param memory_policy: (Memory) the replay buffer (if None, default to baselines.ddpg.memory.Memory)
     :param eval_env: (Gym Environment) the evaluation environment (can be None)
     :param nb_train_steps: (int) the number of training steps
     :param nb_rollout_steps: (int) the number of rollout steps
@@ -168,22 +168,23 @@ class DDPG(OffPolicyRLModel):
     :param _init_setup_model: (bool) Whether or not to build the network at the creation of the instance
     """
 
-    def __init__(self, policy, env, gamma=0.99, memory_policy=None, eval_env=None, nb_train_steps=50,
+    def __init__(self, policy, env, replay_buffer=ReplayBuffer, gamma=0.99, eval_env=None, nb_train_steps=50,
                  nb_rollout_steps=100, nb_eval_steps=100, param_noise=None, action_noise=None,
                  normalize_observations=False, tau=0.001, batch_size=128, param_noise_adaption_interval=50,
                  normalize_returns=False, enable_popart=False, observation_range=(-5., 5.), critic_l2_reg=0.,
                  return_range=(-np.inf, np.inf), actor_lr=1e-4, critic_lr=1e-3, clip_norm=None, reward_scale=1.,
-                 render=False, render_eval=False, memory_limit=100, verbose=0, tensorboard_log=None,
+                 render=False, render_eval=False, memory_limit=50000, verbose=0, tensorboard_log=None,
                  _init_setup_model=True):
 
-        # TODO: replay_buffer refactoring
-        super(DDPG, self).__init__(policy=policy, env=env, replay_buffer=None, verbose=verbose, policy_base=DDPGPolicy,
-                                   requires_vec_env=False)
+        super(DDPG, self).__init__(policy=policy, env=env, replay_buffer=replay_buffer, verbose=verbose,
+                                   policy_base=DDPGPolicy, requires_vec_env=False)
+
+        assert not issubclass(replay_buffer, PrioritizedReplayBuffer), \
+            "Error: DDPG does not support Prioritized Replay Buffer, please use a standard Replay Buffer."
 
         # Parameters.
         self.gamma = gamma
         self.tau = tau
-        self.memory_policy = memory_policy or Memory
         self.normalize_observations = normalize_observations
         self.normalize_returns = normalize_returns
         self.action_noise = action_noise
@@ -274,8 +275,7 @@ class DDPG(OffPolicyRLModel):
             with self.graph.as_default():
                 self.sess = tf_util.single_threaded_session(graph=self.graph)
 
-                self.memory = self.memory_policy(limit=self.memory_limit, action_shape=self.action_space.shape,
-                                                 observation_shape=self.observation_space.shape)
+                self.memory = self.replay_buffer(self.memory_limit)
 
                 with tf.variable_scope("input", reuse=False):
                     # Observation normalization.
@@ -575,7 +575,7 @@ class DDPG(OffPolicyRLModel):
         :param terminal1: (bool) is the episode done
         """
         reward *= self.reward_scale
-        self.memory.append(obs0, action, reward, obs1, terminal1)
+        self.memory.add(obs0, action, reward, obs1, terminal1)
         if self.normalize_observations:
             self.obs_rms.update(np.array([obs0]))
 
@@ -589,14 +589,14 @@ class DDPG(OffPolicyRLModel):
         :return: (float, float) critic loss, actor loss
         """
         # Get a batch
-        batch = self.memory.sample(batch_size=self.batch_size)
+        obs0, actions, rewards, obs1, terminals1 = self.memory.sample(batch_size=self.batch_size)
 
         if self.normalize_returns and self.enable_popart:
             old_mean, old_std, target_q = self.sess.run([self.ret_rms.mean, self.ret_rms.std, self.target_q],
                                                         feed_dict={
-                                                            self.obs_target: batch['obs1'],
-                                                            self.rewards: batch['rewards'],
-                                                            self.terminals1: batch['terminals1'].astype('float32')
+                                                            self.obs_target: obs1,
+                                                            self.rewards: rewards.reshape(-1, 1),
+                                                            self.terminals1: terminals1.reshape(-1, 1).astype('float32')
                                                         })
             self.ret_rms.update(target_q.flatten())
             self.sess.run(self.renormalize_q_outputs_op, feed_dict={
@@ -606,18 +606,18 @@ class DDPG(OffPolicyRLModel):
 
         else:
             target_q = self.sess.run(self.target_q, feed_dict={
-                self.obs_target: batch['obs1'],
-                self.rewards: batch['rewards'],
-                self.terminals1: batch['terminals1'].astype('float32')
+                self.obs_target: obs1,
+                self.rewards: rewards.reshape(-1, 1),
+                self.terminals1: terminals1.reshape(-1, 1).astype('float32')
             })
 
         # Get all gradients and perform a synced update.
         ops = [self.actor_grads, self.actor_loss, self.critic_grads, self.critic_loss]
         td_map = {
-            self.obs_train: batch['obs0'],
-            self.actions: batch['actions'],
-            self.action_train_ph: batch['actions'],
-            self.rewards: batch['rewards'],
+            self.obs_train: obs0,
+            self.actions: actions,
+            self.action_train_ph: actions,
+            self.rewards: rewards.reshape(-1, 1),
             self.critic_target: target_q,
             self.param_noise_stddev: 0 if self.param_noise is None else self.param_noise.current_stddev
         }
@@ -671,7 +671,9 @@ class DDPG(OffPolicyRLModel):
         if self.stats_sample is None:
             # Get a sample and keep that fixed for all further computations.
             # This allows us to estimate the change in value for the same set of inputs.
-            self.stats_sample = self.memory.sample(batch_size=self.batch_size)
+            obs0, actions, rewards, obs1, terminals1 = self.memory.sample(batch_size=self.batch_size)
+            self.stats_sample = {'obs0': obs0, 'actions': actions, 'rewards': rewards.reshape(-1, 1), 'obs1': obs1,
+                                 'terminals1': terminals1.reshape(-1, 1)}
 
         feed_dict = {
             self.actions: self.stats_sample['actions']
@@ -706,12 +708,12 @@ class DDPG(OffPolicyRLModel):
             return 0.
 
         # Perturb a separate copy of the policy to adjust the scale for the next "real" perturbation.
-        batch = self.memory.sample(batch_size=self.batch_size)
+        obs0, _, _, _, _ = self.memory.sample(batch_size=self.batch_size)
         self.sess.run(self.perturb_adaptive_policy_ops, feed_dict={
             self.param_noise_stddev: self.param_noise.current_stddev,
         })
         distance = self.sess.run(self.adaptive_policy_distance, feed_dict={
-            self.obs_adapt_noise: batch['obs0'], self.obs_train: batch['obs0'],
+            self.obs_adapt_noise: obs0, self.obs_train: obs0,
             self.param_noise_stddev: self.param_noise.current_stddev,
         })
 
@@ -829,7 +831,7 @@ class DDPG(OffPolicyRLModel):
                         epoch_adaptive_distances = []
                         for t_train in range(self.nb_train_steps):
                             # Adapt param noise, if necessary.
-                            if self.memory.nb_entries >= self.batch_size and \
+                            if len(self.memory) >= self.batch_size and \
                                     t_train % self.param_noise_adaption_interval == 0:
                                 distance = self._adapt_param_noise()
                                 epoch_adaptive_distances.append(distance)
@@ -983,7 +985,7 @@ class DDPG(OffPolicyRLModel):
             "reward_scale": self.reward_scale,
             "memory_limit": self.memory_limit,
             "policy": self.policy,
-            "memory_policy": self.memory_policy,
+            "replay_buffer": self.replay_buffer,
             "n_envs": self.n_envs,
             "_vectorize_action": self._vectorize_action
         }
