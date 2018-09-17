@@ -75,7 +75,7 @@ Reward function
 Utility functions
 -----------------
 
-.. autoclass:: utils
+.. automodule:: utils
   :members:
 
 
