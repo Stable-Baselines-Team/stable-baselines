@@ -17,7 +17,7 @@ class HER(OffPolicyRLModel):
     :param *args: positional arguments for the model
     :param **kwargs: keyword arguments for the model
     """
-    def __init__(self, model, policy, env, reward_function, num_sample_goals=1, verbose=0, _init_setup_model=True,
+    def __init__(self, model, policy, env, reward_function, num_sample_goals=4, verbose=0, _init_setup_model=True,
                  *args, **kwargs):
         super(HER, self).__init__(policy=None, env=env, replay_buffer=None,
                                   verbose=verbose, policy_base=None, requires_vec_env=True)
