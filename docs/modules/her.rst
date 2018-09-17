@@ -98,7 +98,7 @@ You can define custom reward function for HER using the `HERRewardFunctions` cla
 
   env = DummyVecEnv([lambda: gym.make('MountainCar-v0')])  # The algorithms require a vectorized environment to run
 
-  model = HER(DQN, 'MlpPolicy', env, ProximalReward(eps=0.1))
+  model = HER(DQN, 'MlpPolicy', env, CustomReward())
   model.learn(total_timesteps=25000)
 
   obs = env.reset()
