@@ -75,7 +75,7 @@ Reward function
 Utility functions
 -----------------
 
-.. automodule:: utils
+.. automodule:: stable_baselines.her.utils
   :members:
 
 
