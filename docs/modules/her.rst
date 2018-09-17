@@ -19,7 +19,7 @@ You will also need to be careful to stack the goal to the observation when using
 Example
 -------
 
-Train a HER agent on `MountainCar-v0`.
+Train a HER agent on `MountainCarContinuous-v0`.
 
 .. code-block:: python
 
@@ -28,11 +28,11 @@ Train a HER agent on `MountainCar-v0`.
   from stable_baselines.common.vec_env import DummyVecEnv
   from stable_baselines.her.reward_class import ProximalReward
   from stable_baselines.her.utils import stack_obs_goal
-  from stable_baselines import DQN, HER
+  from stable_baselines import DDPG, HER
 
-  env = DummyVecEnv([lambda: gym.make('MountainCar-v0')])  # The algorithms require a vectorized environment to run
+  env = DummyVecEnv([lambda: gym.make('MountainCarContinuous-v0')])  # The algorithms require a vectorized environment to run
 
-  model = HER(DQN, 'MlpPolicy', env, ProximalReward(eps=0.1))  # define the reward function for HER
+  model = HER(DDPG, 'MlpPolicy', env, ProximalReward(eps=0.1))  # define the reward function for HER
   model.learn(total_timesteps=25000)
   model.save("her_dqn_mountaincar")
 
