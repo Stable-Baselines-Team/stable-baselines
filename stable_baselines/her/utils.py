@@ -9,6 +9,8 @@ def stack_obs_goal(obs, goal):
     :param goal: (np.ndarray) the goal
     :return: (np.ndarray) the stacked observation - goal
     """
+    obs = np.array(obs)
+    goal = np.array(goal)
     return np.stack([obs, goal.reshape(obs.shape)], axis=-1).reshape(obs.shape[:-1] + (obs.shape[-1] * 2,))
 
 
@@ -19,4 +21,5 @@ def unstack_goal(stacked_obs):
     :param stacked_obs: (np.ndarray) the stacked observation - goal
     :return: (np.ndarray) the observation
     """
+    stacked_obs = np.array(stacked_obs)
     return stacked_obs[:stacked_obs.shape[-1] // 2]

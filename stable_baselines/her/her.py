@@ -28,21 +28,25 @@ class HER(OffPolicyRLModel):
         self.reward_function = reward_function
         self.model_class = model
 
-        env = HERWrapper(self.env, reward_function)
+        if self.env is not None:
+            env = HERWrapper(self.env, reward_function)
         replay_buffer = make_her_buffer(reward_function, num_sample_goals)
-        self.model = model(policy=policy, env=env, verbose=verbose, replay_buffer=replay_buffer, *args, **kwargs)
+        self.model = model(policy=policy, env=env, verbose=verbose, replay_buffer=replay_buffer,
+                           _init_setup_model=_init_setup_model, *args, **kwargs)
 
         if _init_setup_model:
             self.setup_model()
 
     def setup_model(self):
-        self.reward_function.set_env(self.env)
+        self.reward_function.set_env(self.env, self.observation_space)
         self.model.setup_model()
 
     def set_env(self, env):
         super().set_env(env)
-        self.reward_function.set_env(env)
-        self.model.set_env(HERWrapper(self.env, self.reward_function))
+        self.reward_function.set_env(self.env, self.observation_space)
+        if self.env is not None:
+            env = HERWrapper(self.env, self.reward_function)
+        self.model.set_env(env)
 
     def learn(self, total_timesteps, callback=None, seed=None, log_interval=100, tb_log_name=None):
         if tb_log_name is None:
@@ -61,6 +65,7 @@ class HER(OffPolicyRLModel):
         return {
             "model_class": self.model_class,
             "reward_function": self.reward_function,
+            "observation_space": self.observation_space,
         }
 
     def save(self, save_path):
@@ -75,10 +80,12 @@ class HER(OffPolicyRLModel):
     def load(cls, load_path, env=None, **kwargs):
         (data, model_data), params = cls._load_from_file(load_path)
 
-        her_model = cls(model=data["model_class"], policy=model_data["policy"], env=None, _init_setup_model=False)
+        her_model = cls(model=data["model_class"], policy=model_data["policy"],
+                        reward_function=data["reward_function"], env=None, _init_setup_model=False)
+        her_model.__dict__.update(data)
         her_model.model.__dict__.update(model_data)
         her_model.model.__dict__.update(kwargs)
-        her_model.model.set_env(env)
+        her_model.set_env(env)
         her_model.setup_model()
 
         restores = []

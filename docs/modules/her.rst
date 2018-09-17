@@ -8,56 +8,44 @@ HER
 
 `Hindsight Experience Replay (HER) <https://arxiv.org/abs/1707.01495>`_
 
-.. warning::
-
-	HER is not refactored yet. We are looking for contributors to help us.
 
 How to use Hindsight Experience Replay
 --------------------------------------
 
-Getting started
-~~~~~~~~~~~~~~~
+HER is a method wrapper that works with Off policy methods (DQN and DDPG for example).
+You can still pass the same arguments as with the original methods, the key difference is defining a Reward function (see :ref:`her_rewards`) for the goal exploration.
+You will also need to be careful to stack the goal to the observation when using the `predict` function (`stable-baselines.her.utils.stack_obs_goal`).
 
-Training an agent is very simple:
+Example
+-------
 
-.. code:: bash
+Train a HER agent on `MountainCar-v0`.
 
-   python -m stable_baselines.her.experiment.train
+.. code-block:: python
 
-This will train a DDPG+HER agent on the ``FetchReach`` environment. You
-should see the success rate go up quickly to ``1.0``, which means that
-the agent achieves the desired goal in 100% of the cases. The training
-script logs other diagnostics as well and pickles the best policy so far
-(w.r.t. to its test success rate), the latest policy, and, if enabled, a
-history of policies every K epochs.
+  import gym
 
-To inspect what the agent has learned, use the play script:
+  from stable_baselines.common.vec_env import DummyVecEnv
+  from stable_baselines.her.reward_class import ProximalReward
+  from stable_baselines.her.utils import stack_obs_goal
+  from stable_baselines import DQN, HER
 
-.. code:: bash
+  env = DummyVecEnv([lambda: gym.make('MountainCar-v0')])  # The algorithms require a vectorized environment to run
 
-   python -m stable_baselines.her.experiment.play /path/to/an/experiment/policy_best.pkl
+  model = HER(DQN, 'MlpPolicy', env, ProximalReward(eps=0.1))  # define the reward function for HER
+  model.learn(total_timesteps=25000)
+  model.save("her_dqn_mountaincar")
 
-You can try it right now with the results of the training step (the
-script prints out the path for you). This should visualize the current
-policy for 10 episodes and will also print statistics.
+  del model # remove to demonstrate saving and loading
 
-Reproducing results
-~~~~~~~~~~~~~~~~~~~
+  model = HER.load("her_dqn_mountaincar")
 
-In order to reproduce the results from `Plappert et al. (2018)`_, run
-the following command:
+  obs = env.reset()
+  while True:
+      action, _states = model.predict(stack_obs_goal(obs, [[0.5, 0]]))  # stack the goal to the end of the observation
+      obs, rewards, dones, info = env.step(action)
+      env.render()
 
-.. code:: bash
-
-   python -m stable_baselines.her.experiment.train --num_cpu 19
-
-This will require a machine with sufficient amount of physical CPU
-cores. In our experiments, we used `Azure's D15v2 instances`_, which
-have 20 physical cores. We only scheduled the experiment on 19 of those
-to leave some head-room on the system.
-
-.. _Plappert et al. (2018): https://arxiv.org/abs/1802.09464
-.. _Azure's D15v2 instances: https://docs.microsoft.com/en-us/azure/virtual-machines/linux/sizes
 
 
 Parameters
@@ -65,3 +53,58 @@ Parameters
 
 .. autoclass:: HER
   :members:
+  :inherited-members:
+
+.. _her_rewards:
+
+Reward function
+---------------
+
+.. autoclass:: HERRewardFunctions
+  :members:
+
+
+.. autoclass:: ProximalReward
+  :members:
+  :inherited-members:
+
+
+Utility functions
+-----------------
+
+.. autoclass:: utils
+  :members:
+
+
+Custom reward function
+----------------------
+
+You can define custom reward function for HER using the `HERRewardFunctions` class:
+
+.. code-block:: python
+
+  import gym
+
+  import numpy as np
+
+  from stable_baselines.common.vec_env import DummyVecEnv
+  from stable_baselines.her.reward_class import HERRewardFunctions
+  from stable_baselines.her.utils import stack_obs_goal
+  from stable_baselines import DQN, HER
+
+  class CustomReward(HERRewardFunctions):  # A custom reward function, that will return 1 when the observation has a higher value than the goal
+      def get_reward(self, observation, action, goal):
+          return 1 if np.any((observation - goal) > 0.1) else -1
+
+  env = DummyVecEnv([lambda: gym.make('MountainCar-v0')])  # The algorithms require a vectorized environment to run
+
+  model = HER(DQN, 'MlpPolicy', env, ProximalReward(eps=0.1))
+  model.learn(total_timesteps=25000)
+
+  obs = env.reset()
+  while True:
+      action, _states = model.predict(stack_obs_goal(obs, [[0.5, 0]]))  # stack the goal to the end of the observation
+      obs, rewards, dones, info = env.step(action)
+      env.render()
+
+

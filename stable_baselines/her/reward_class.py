@@ -11,15 +11,15 @@ class HERRewardFunctions(ABC):
     def __init__(self):
         self.env = None
 
-    @abstractmethod
-    def set_env(self, env):
+    def set_env(self, env, observation_space=None):
         """
         sets the environment for the reward func
 
         :param env: (Gym environment) the environment that uses this reward function
             (should you need more information from the environment)
+        :param observation_space: (gym.spaces) the observation space (optional if env is None)
         """
-        pass
+        self.env = env
 
     @abstractmethod
     def get_reward(self, observation, action, goal):
@@ -45,20 +45,24 @@ class ProximalReward(HERRewardFunctions):
         self.eps = eps
         self.float_comp = None
 
-    def set_env(self, env):
-        self.env = env
-        if isinstance(self.env.observation_space, spaces.Box):
+    def set_env(self, env, observation_space=None):
+        if env is not None:
+            self.env = env
+            observation_space = env.observation_space
+        else:
+            assert observation_space is not None, "Error: either env is None, or observation_space is None, not both."
+        if isinstance(observation_space, spaces.Box):
             self.float_comp = True
-        elif (isinstance(self.env.observation_space, spaces.MultiDiscrete) or
-              isinstance(self.env.observation_space, spaces.Discrete) or
-              isinstance(self.env.observation_space, spaces.MultiBinary)):
+        elif (isinstance(observation_space, spaces.MultiDiscrete) or
+              isinstance(observation_space, spaces.Discrete) or
+              isinstance(observation_space, spaces.MultiBinary)):
             self.float_comp = False
         else:
             raise ValueError("Error: observation space {} not supported for the ProximalReward function."
-                             .format(self.env.observation_space))
+                             .format(observation_space))
 
     def get_reward(self, observation, action, goal):
-        if self.env is None:
+        if self.float_comp is None:
             raise ValueError("Undefined environment! halting.")
         if self.float_comp:
             return 1 if np.all(np.abs(observation - goal) <= self.eps) else -1
