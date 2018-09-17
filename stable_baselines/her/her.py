@@ -1,24 +1,26 @@
 from stable_baselines.common import OffPolicyRLModel
-from stable_baselines.common.vec_env import VecEnv, DummyVecEnv
 from stable_baselines.her.replay_buffer import make_her_buffer
 from stable_baselines.her.env_wrapper import HERWrapper
 
 
 class HER(OffPolicyRLModel):
     """
+    The HER (Hindsight Experience Replay) model class, https://arxiv.org/abs/1707.01495
 
-    :param model: (OffPolicyRLModel)
-    :param policy: (BasePolicy)
-    :param env: (Gym Environment)
-    :param reward_function: (HERRewardFunctions)
-    :param verbose: (int)
-    :param _init_setup_model: (bool)
+    :param model: (OffPolicyRLModel) The off policy RL model to apply Hindsight Experience Replay
+    :param policy: (BasePolicy or str) The policy model to use (MlpPolicy, CnnPolicy, CnnLstmPolicy, ...)
+    :param env: (Gym environment or str) The environment to learn from (if registered in Gym, can be str)
+    :param reward_function: (HERRewardFunctions) the reward function for HER
+    :param num_sample_goals: (int) the number of goals to sample for every step
+    :param verbose: (int) the verbosity level: 0 none, 1 training information, 2 tensorflow debug
+    :param _init_setup_model: (bool) Whether or not to build the network at the creation of the instance
     :param *args: positional arguments for the model
     :param **kwargs: keyword arguments for the model
     """
-    def __init__(self, model, policy, env, reward_function, verbose=0, _init_setup_model=False, *args, **kwargs):
+    def __init__(self, model, policy, env, reward_function, num_sample_goals=1, verbose=0, _init_setup_model=True,
+                 *args, **kwargs):
         super(HER, self).__init__(policy=None, env=env, replay_buffer=None,
-                                  verbose=verbose, policy_base=None, requires_vec_env=False)
+                                  verbose=verbose, policy_base=None, requires_vec_env=True)
 
         assert issubclass(model, OffPolicyRLModel), \
             "Error: HER only works with Off policy model (such as DDPG and DQN)."
@@ -26,11 +28,9 @@ class HER(OffPolicyRLModel):
         self.reward_function = reward_function
         self.model_class = model
 
-        if not isinstance(env, VecEnv):
-            env = DummyVecEnv([lambda: env])
-        env = HERWrapper(env, reward_function)
-        self.model = model(policy=policy, env=env, verbose=verbose, replay_buffer=make_her_buffer(reward_function),
-                           *args, **kwargs)
+        env = HERWrapper(self.env, reward_function)
+        replay_buffer = make_her_buffer(reward_function, num_sample_goals)
+        self.model = model(policy=policy, env=env, verbose=verbose, replay_buffer=replay_buffer, *args, **kwargs)
 
         if _init_setup_model:
             self.setup_model()
@@ -42,7 +42,7 @@ class HER(OffPolicyRLModel):
     def set_env(self, env):
         super().set_env(env)
         self.reward_function.set_env(env)
-        self.model.set_env(env)
+        self.model.set_env(HERWrapper(self.env, self.reward_function))
 
     def learn(self, total_timesteps, callback=None, seed=None, log_interval=100, tb_log_name=None):
         if tb_log_name is None:

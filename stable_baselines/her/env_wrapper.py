@@ -2,23 +2,33 @@ from gym import spaces
 import numpy as np
 
 from stable_baselines.common.vec_env.base_vec_env import VecEnvWrapper
+from stable_baselines.her.utils import stack_obs_goal
 
 
 class HERWrapper(VecEnvWrapper):
+    """
+    Creates the wrapper for HER
+
+    :param venv: (Gym environment) The environment to wrap
+    :param reward_function: (HERRewardFunctions) The reward function to apply to the environment
+    """
     def __init__(self, venv, reward_function):
         if isinstance(venv.observation_space, spaces.Discrete):
             observation_space = spaces.MultiDiscrete([venv.observation_space.n] * 2)
         elif isinstance(venv.observation_space, spaces.Box):
-            low = venv.observation_space.low
-            if hasattr(low, "__iter__"):
-                low = list(low) * 2
-
-            high = venv.observation_space.low
-            if hasattr(high, "__iter__"):
-                high = list(high) * 2
-
             shape = venv.observation_space.shape
-            shape[-1] = shape[-1] * 2
+            shape = np.array(shape[:-1] + (shape[-1] * 2,))
+
+            low = venv.observation_space.low
+            if not np.isscalar(low):
+                low = np.array(list(low) * 2)
+                shape = None # a quirk of Box, if low and high are not scalars, then shape must be None
+
+            high = venv.observation_space.high
+            if not np.isscalar(high):
+                high = np.array(list(high) * 2)
+                shape = None
+
             observation_space = spaces.Box(low=low, high=high, shape=shape, dtype=venv.observation_space.dtype)
         elif isinstance(venv.observation_space, spaces.MultiDiscrete):
             observation_space = spaces.MultiDiscrete(venv.observation_space.nvec * 2)
@@ -38,16 +48,15 @@ class HERWrapper(VecEnvWrapper):
 
     def step_wait(self):
         obs, rew, done, info = self.venv.step(self.actions)
-        rew = self.reward_function.get_reward(obs, self.actions, self.goal)
         # stack the goal to the observation and reshape it to the right size
-        obs_goal = np.stack([obs, self.goal], axis=-1).reshape(obs.shape[:-1] + (obs.shape[-1] * 2,))
+        obs_goal = stack_obs_goal(obs, self.goal)
         return obs_goal, rew, done, info
 
     def reset(self):
         obs = self.venv.reset()
         self.goal = self.venv.observation_space.sample()
         # stack the goal to the observation and reshape it to the right size
-        obs_goal = np.stack([obs, self.goal], axis=-1).reshape(obs.shape[:-1] + (obs.shape[-1] * 2,))
+        obs_goal = stack_obs_goal(obs, self.goal)
         return obs_goal
 
     def close(self):
