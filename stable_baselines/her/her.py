@@ -12,6 +12,7 @@ class HER(OffPolicyRLModel):
     :param env: (Gym environment or str) The environment to learn from (if registered in Gym, can be str)
     :param reward_function: (HERRewardFunctions) the reward function for HER
     :param num_sample_goals: (int) the number of goals to sample for every step
+    :param buffer_class: (HERBuffer) the buffer class to use for the experience replay
     :param verbose: (int) the verbosity level: 0 none, 1 training information, 2 tensorflow debug
     :param _init_setup_model: (bool) Whether or not to build the network at the creation of the instance
     :param *args: positional arguments for the model

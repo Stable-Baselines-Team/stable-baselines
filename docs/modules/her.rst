@@ -80,21 +80,21 @@ Reward function
 HER Replay Buffer
 -----------------
 
-.. autoclass::HERBuffer
+.. autoclass:: HERBuffer
   :members:
 
 
-.. autoclass::EpisodeHERBuffer
-  :members:
-  :inherited-members:
-
-
-.. autoclass::RandomHERBuffer
+.. autoclass:: EpisodeHERBuffer
   :members:
   :inherited-members:
 
 
-.. autoclass::FutureHERBuffer
+.. autoclass:: RandomHERBuffer
+  :members:
+  :inherited-members:
+
+
+.. autoclass:: FutureHERBuffer
   :members:
   :inherited-members:
 
