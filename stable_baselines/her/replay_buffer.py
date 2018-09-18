@@ -6,9 +6,11 @@ from stable_baselines.her.utils import unstack_goal, stack_obs_goal
 
 class HERBuffer(ReplayBuffer):
     """
-    Replay Buffer for HER that implements the Episode strategy
+    Base class for the Replay Buffer for HER.
 
     :param size: (int) The size of the buffer
+    :param reward_func: (HERRewardFunctions) the reward function
+    :param num_sample_goals: (int) the ratio of sampled HER to normal experience replay samples
     """
 
     def __init__(self, size, reward_func, num_sample_goals):
@@ -59,6 +61,13 @@ class HERBuffer(ReplayBuffer):
 
 
 class FutureHERBuffer(HERBuffer):
+    """
+    HER Replay buffer that implements the Future strategy
+
+    :param size: (int) The size of the buffer
+    :param reward_func: (HERRewardFunctions) the reward function
+    :param num_sample_goals: (int) the ratio of sampled HER to normal experience replay samples
+    """
     def sample(self, batch_size, **kwargs):
         idxes = [np.random.randint(0, len(self._storage) - 1) for _ in range(batch_size)]
         future_proba = 1 - (1. / (1 + self.num_sample_goals))
@@ -80,6 +89,13 @@ class FutureHERBuffer(HERBuffer):
 
 
 class EpisodeHERBuffer(HERBuffer):
+    """
+    HER Replay buffer that implements the Episode strategy
+
+    :param size: (int) The size of the buffer
+    :param reward_func: (HERRewardFunctions) the reward function
+    :param num_sample_goals: (int) the ratio of sampled HER to normal experience replay samples
+    """
     def sample(self, batch_size, **kwargs):
         idxes = [np.random.randint(0, len(self._storage) - 1) for _ in range(batch_size)]
         episode_proba = 1 - (1. / (1 + self.num_sample_goals))
@@ -101,6 +117,13 @@ class EpisodeHERBuffer(HERBuffer):
 
 
 class RandomHERBuffer(HERBuffer):
+    """
+    HER Replay buffer that implements the random strategy
+
+    :param size: (int) The size of the buffer
+    :param reward_func: (HERRewardFunctions) the reward function
+    :param num_sample_goals: (int) the ratio of sampled HER to normal experience replay samples
+    """
     def sample(self, batch_size, **kwargs):
         idxes = [np.random.randint(0, len(self._storage) - 1) for _ in range(batch_size)]
         random_proba = 1 - (1. / (1 + self.num_sample_goals))

@@ -29,6 +29,7 @@ Train a HER agent on `MountainCarContinuous-v0`.
   from stable_baselines.common.vec_env import DummyVecEnv
   from stable_baselines.her.reward_class import ProximalReward
   from stable_baselines.her.utils import stack_obs_goal
+  from stable_baselines.her.replay_buffer import FutureHERBuffer
   from stable_baselines.ddpg.noise import NormalActionNoise
   from stable_baselines import DDPG, HER
 
@@ -38,7 +39,8 @@ Train a HER agent on `MountainCarContinuous-v0`.
   n_actions = env.action_space.shape[-1]
   action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=float(0.2) * np.ones(n_actions))
 
-  model = HER(DDPG, 'MlpPolicy', env, ProximalReward(eps=0.1), action_noise=action_noise)  # define the reward function for HER
+  # define the reward function, buffer_class and model for HER (+ model parameters)
+  model = HER(DDPG, 'MlpPolicy', env, ProximalReward(eps=0.1), buffer_class=FutureHERBuffer, action_noise=action_noise)
   model.learn(total_timesteps=25000)
   model.save("her_dqn_mountaincar")
 
@@ -71,6 +73,28 @@ Reward function
 
 
 .. autoclass:: ProximalReward
+  :members:
+  :inherited-members:
+
+
+HER Replay Buffer
+-----------------
+
+.. autoclass::HERBuffer
+  :members:
+
+
+.. autoclass::EpisodeHERBuffer
+  :members:
+  :inherited-members:
+
+
+.. autoclass::RandomHERBuffer
+  :members:
+  :inherited-members:
+
+
+.. autoclass::FutureHERBuffer
   :members:
   :inherited-members:
 
