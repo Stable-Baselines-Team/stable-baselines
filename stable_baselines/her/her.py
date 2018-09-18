@@ -13,13 +13,16 @@ class HER(OffPolicyRLModel):
     :param reward_function: (HERRewardFunctions) the reward function for HER
     :param num_sample_goals: (int) the number of goals to sample for every step
     :param buffer_class: (HERBuffer) the buffer class to use for the experience replay
+    :param goal_sampling: (str or Callable) function (Gym environment) -> goal, or ["random", "sample_obs"],
+        where random is a sampling in the observation space,
+        and where sample_obs is a random observation of the last episode
     :param verbose: (int) the verbosity level: 0 none, 1 training information, 2 tensorflow debug
     :param _init_setup_model: (bool) Whether or not to build the network at the creation of the instance
     :param *args: positional arguments for the model
     :param **kwargs: keyword arguments for the model
     """
     def __init__(self, model, policy, env, reward_function, num_sample_goals=4, buffer_class=FutureHERBuffer,
-                 verbose=0, _init_setup_model=True, *args, **kwargs):
+                 goal_sampling="sample_obs", verbose=0, _init_setup_model=True, *args, **kwargs):
         super(HER, self).__init__(policy=None, env=env, replay_buffer=None,
                                   verbose=verbose, policy_base=None, requires_vec_env=True)
 
@@ -30,9 +33,10 @@ class HER(OffPolicyRLModel):
         self.model_class = model
         self.buffer_class = buffer_class
         self.num_sample_goals = num_sample_goals
+        self.goal_sampling = goal_sampling
 
         if self.env is not None:
-            env = HERWrapper(self.env, reward_function)
+            env = HERWrapper(self.env, reward_function, goal_sampling=goal_sampling)
         replay_buffer = make_her_buffer(buffer_class, reward_function, num_sample_goals)
         self.model = model(policy=policy, env=env, verbose=verbose, replay_buffer=replay_buffer,
                            _init_setup_model=_init_setup_model, *args, **kwargs)
@@ -48,7 +52,7 @@ class HER(OffPolicyRLModel):
         super().set_env(env)
         self.reward_function.set_env(self.env, self.observation_space)
         if self.env is not None:
-            env = HERWrapper(self.env, self.reward_function)
+            env = HERWrapper(self.env, self.reward_function, goal_sampling=self.goal_sampling)
         self.model.set_env(env)
 
     def learn(self, total_timesteps, callback=None, seed=None, log_interval=100, tb_log_name=None):
@@ -71,6 +75,7 @@ class HER(OffPolicyRLModel):
             "observation_space": self.observation_space,
             "num_sample_goals": self.num_sample_goals,
             "buffer_class": self.buffer_class,
+            "goal_sampling": self.goal_sampling,
         }
 
     def save(self, save_path):
@@ -85,9 +90,10 @@ class HER(OffPolicyRLModel):
     def load(cls, load_path, env=None, **kwargs):
         (data, model_data), params = cls._load_from_file(load_path)
 
+        print(data)
         her_model = cls(model=data["model_class"], policy=model_data["policy"], reward_function=data["reward_function"],
-                        buffer_class=data["buffer_class"], num_sample_goals=data["num_sample_goals"], env=None,
-                        _init_setup_model=False)
+                        buffer_class=data["buffer_class"], num_sample_goals=data["num_sample_goals"],
+                        goal_sampling=data["goal_sampling"], env=None, _init_setup_model=False)
         her_model.__dict__.update(data)
         her_model.model.__dict__.update(model_data)
         her_model.model.__dict__.update(kwargs)
