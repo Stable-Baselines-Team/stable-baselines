@@ -1,5 +1,5 @@
 from stable_baselines.common import OffPolicyRLModel
-from stable_baselines.her.replay_buffer import make_her_buffer
+from stable_baselines.her.replay_buffer import make_her_buffer, FutureHERBuffer
 from stable_baselines.her.env_wrapper import HERWrapper
 
 
@@ -17,8 +17,8 @@ class HER(OffPolicyRLModel):
     :param *args: positional arguments for the model
     :param **kwargs: keyword arguments for the model
     """
-    def __init__(self, model, policy, env, reward_function, num_sample_goals=4, verbose=0, _init_setup_model=True,
-                 *args, **kwargs):
+    def __init__(self, model, policy, env, reward_function, num_sample_goals=4, buffer_class=FutureHERBuffer,
+                 verbose=0, _init_setup_model=True, *args, **kwargs):
         super(HER, self).__init__(policy=None, env=env, replay_buffer=None,
                                   verbose=verbose, policy_base=None, requires_vec_env=True)
 
@@ -27,10 +27,12 @@ class HER(OffPolicyRLModel):
 
         self.reward_function = reward_function
         self.model_class = model
+        self.buffer_class = buffer_class
+        self.num_sample_goals = num_sample_goals
 
         if self.env is not None:
             env = HERWrapper(self.env, reward_function)
-        replay_buffer = make_her_buffer(reward_function, num_sample_goals)
+        replay_buffer = make_her_buffer(buffer_class, reward_function, num_sample_goals)
         self.model = model(policy=policy, env=env, verbose=verbose, replay_buffer=replay_buffer,
                            _init_setup_model=_init_setup_model, *args, **kwargs)
 
@@ -66,6 +68,8 @@ class HER(OffPolicyRLModel):
             "model_class": self.model_class,
             "reward_function": self.reward_function,
             "observation_space": self.observation_space,
+            "num_sample_goals": self.num_sample_goals,
+            "buffer_class": self.buffer_class,
         }
 
     def save(self, save_path):
@@ -80,8 +84,9 @@ class HER(OffPolicyRLModel):
     def load(cls, load_path, env=None, **kwargs):
         (data, model_data), params = cls._load_from_file(load_path)
 
-        her_model = cls(model=data["model_class"], policy=model_data["policy"],
-                        reward_function=data["reward_function"], env=None, _init_setup_model=False)
+        her_model = cls(model=data["model_class"], policy=model_data["policy"], reward_function=data["reward_function"],
+                        buffer_class=data["buffer_class"], num_sample_goals=data["num_sample_goals"], env=None,
+                        _init_setup_model=False)
         her_model.__dict__.update(data)
         her_model.model.__dict__.update(model_data)
         her_model.model.__dict__.update(kwargs)
