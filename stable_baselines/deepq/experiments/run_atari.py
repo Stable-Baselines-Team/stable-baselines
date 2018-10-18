@@ -1,4 +1,5 @@
 import argparse
+from functools import partial
 
 from stable_baselines import bench, logger
 from stable_baselines.common import set_global_seeds
@@ -9,14 +10,14 @@ from stable_baselines.deepq import DQN, wrap_atari_dqn, CnnPolicy
 
 def main():
     """
-    run the atari test
+    Run the atari test
     """
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--env', help='environment ID', default='BreakoutNoFrameskip-v4')
     parser.add_argument('--seed', help='RNG seed', type=int, default=0)
     parser.add_argument('--prioritized', type=int, default=1)
-    parser.add_argument('--prioritized-replay-alpha', type=float, default=0.6)
     parser.add_argument('--dueling', type=int, default=1)
+    parser.add_argument('--prioritized-replay-alpha', type=float, default=0.6)
     parser.add_argument('--num-timesteps', type=int, default=int(10e6))
     parser.add_argument('--checkpoint-freq', type=int, default=10000)
     parser.add_argument('--checkpoint-path', type=str, default=None)
@@ -27,6 +28,7 @@ def main():
     env = make_atari(args.env)
     env = bench.Monitor(env, logger.get_dir())
     env = wrap_atari_dqn(env)
+    policy = partial(CnnPolicy, dueling=args.dueling == 1)
 
     if args.prioritized:
         replay_buffer = PrioritizedReplayBuffer

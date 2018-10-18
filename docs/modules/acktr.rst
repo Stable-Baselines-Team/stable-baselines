@@ -43,8 +43,7 @@ Example
 
   import gym
 
-  from stable_baselines.common.policies import MlpPolicy, MlpLstmPolicy, MlpLnLstmPolicy, \
-      CnnPolicy, CnnLstmPolicy, CnnLnLstmPolicy
+  from stable_baselines.common.policies import MlpPolicy, MlpLstmPolicy, MlpLnLstmPolicy
   from stable_baselines.common.vec_env import SubprocVecEnv
   from stable_baselines import ACKTR
 
@@ -58,7 +57,7 @@ Example
 
   del model # remove to demonstrate saving and loading
 
-  ACKTR.load("acktr_cartpole")
+  model = ACKTR.load("acktr_cartpole")
 
   obs = env.reset()
   while True:

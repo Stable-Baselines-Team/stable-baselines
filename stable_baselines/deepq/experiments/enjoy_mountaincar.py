@@ -1,13 +1,14 @@
 import argparse
 
 import gym
+import numpy as np
 
 from stable_baselines.deepq import DQN
 
 
 def main(args):
     """
-    run a trained model for the mountain car problem
+    Run a trained model for the mountain car problem
 
     :param args: (ArgumentParser) the input arguments
     """
@@ -20,7 +21,11 @@ def main(args):
         while not done:
             if not args.no_render:
                 env.render()
-            action, _ = model.predict(obs)
+            # Epsilon-greedy
+            if np.random.random() < 0.02:
+                action = env.action_space.sample()
+            else:
+                action, _ = model.predict(obs, deterministic=True)
             obs, rew, done, _ = env.step(action)
             episode_rew += rew
         print("Episode reward", episode_rew)

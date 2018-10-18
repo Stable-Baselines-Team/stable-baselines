@@ -125,7 +125,7 @@ All the following examples can be executed online using Google colab notebooks:
 | ACER                | :heavy_check_mark:           | :heavy_check_mark: | :x: <sup>(5)</sup> | :heavy_check_mark: | :x:                 | :x:                | :heavy_check_mark:                |
 | ACKTR               | :heavy_check_mark:           | :heavy_check_mark: | :x: <sup>(5)</sup> | :heavy_check_mark: | :x:                 | :x:                | :heavy_check_mark:                |
 | DDPG                | :heavy_check_mark:           | :x:                | :heavy_check_mark: | :x:                | :x:                 | :x:                | :x:                               |
-| DeepQ               | :heavy_check_mark:           | :x:                | :x:                | :heavy_check_mark: | :x:                 | :x:                | :x:                               |
+| DQN                 | :heavy_check_mark:           | :x:                | :x:                | :heavy_check_mark: | :x:                 | :x:                | :x:                               |
 | GAIL <sup>(2)</sup> | :heavy_check_mark:           | :heavy_check_mark: | :heavy_check_mark: | :x:                | :x:                 | :x:                | :heavy_check_mark: <sup>(4)</sup> |
 | HER <sup>(3)</sup>  | :x: <sup>(5)</sup>           | :x:                | :heavy_check_mark: | :x:                | :x:                 | :x:                | :x:                               |
 | PPO1                | :heavy_check_mark:           | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:  | :heavy_check_mark: | :heavy_check_mark: <sup>(4)</sup> |
@@ -169,6 +169,10 @@ To cite this repository in publications:
       howpublished = {\url{https://github.com/hill-a/stable-baselines}},
     }
 ```
+
+## Maintainers
+
+Stable-Baselines is currently maintained by [Ashley Hill](https://github.com/hill-a) (aka @hill-a) and [Antonin Raffin](https://github.com/araffin) (aka @araffin).
 
 ## How To Contribute
 

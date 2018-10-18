@@ -20,7 +20,8 @@ For that, ppo uses clipping to avoid too large update.
 Notes
 -----
 
--  Original paper:  https://arxiv.org/abs/1502.05477
+-  Original paper:  https://arxiv.org/abs/1707.06347
+- Clear explanation of PPO on Arxiv Insights channel: https://www.youtube.com/watch?v=5P7I-xPq8u8
 -  OpenAI blog post: https://blog.openai.com/openai-baselines-ppo/
 - ``mpirun -np 8 python -m stable_baselines.ppo1.run_atari`` runs the algorithm for 40M frames = 10M timesteps on an Atari game. See help (``-h``) for more options.
 - ``python -m stable_baselines.ppo1.run_mujoco`` runs the algorithm for 1M frames on a Mujoco environment.
@@ -52,8 +53,7 @@ Example
 
   import gym
 
-  from stable_baselines.common.policies import MlpPolicy, MlpLstmPolicy, MlpLnLstmPolicy, \
-      CnnPolicy, CnnLstmPolicy, CnnLnLstmPolicy
+  from stable_baselines.common.policies import MlpPolicy, MlpLstmPolicy, MlpLnLstmPolicy
   from stable_baselines.common.vec_env import DummyVecEnv
   from stable_baselines import PPO1
 
@@ -66,7 +66,7 @@ Example
 
   del model # remove to demonstrate saving and loading
 
-  PPO1.load("ppo1_cartpole")
+  model = PPO1.load("ppo1_cartpole")
 
   obs = env.reset()
   while True:

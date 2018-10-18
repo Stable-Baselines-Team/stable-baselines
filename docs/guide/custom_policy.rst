@@ -3,7 +3,7 @@
 Custom Policy Network
 ---------------------
 
-Stable baselines provides default policy networks for images (CNNPolicies)
+Stable baselines provides default policy networks (see :ref:`Policies <policies>` ) for images (CNNPolicies)
 and other type of input features (MlpPolicies).
 However, you can also easily define a custom architecture for the policy (or value) network:
 
@@ -29,6 +29,15 @@ However, you can also easily define a custom architecture for the policy (or val
   model = A2C(CustomPolicy, env, verbose=1)
   # Train the agent
   model.learn(total_timesteps=100000)
+
+  del model
+  # When loading a model with a custom policy
+  # you MUST pass explicitly the policy when loading the saved model
+  model = A2C.load(policy=CustomPolicy)
+
+.. warning::
+
+  When loading a model with a custom policy, you must pass the custom policy explicitly when loading the model. (cf previous example)
 
 
 You can also registered your policy, to help with code simplicity: you can refer to your custom policy using a string.

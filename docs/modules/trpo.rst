@@ -43,8 +43,7 @@ Example
 
   import gym
 
-  from stable_baselines.common.policies import MlpPolicy, MlpLstmPolicy, MlpLnLstmPolicy, \
-      CnnPolicy, CnnLstmPolicy, CnnLnLstmPolicy
+  from stable_baselines.common.policies import MlpPolicy, MlpLstmPolicy, MlpLnLstmPolicy
   from stable_baselines.common.vec_env import DummyVecEnv
   from stable_baselines import TRPO
 
@@ -57,7 +56,7 @@ Example
 
   del model # remove to demonstrate saving and loading
 
-  TRPO.load("trpo_cartpole")
+  model = TRPO.load("trpo_cartpole")
 
   obs = env.reset()
   while True:
