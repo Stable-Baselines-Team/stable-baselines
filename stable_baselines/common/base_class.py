@@ -431,6 +431,9 @@ class _UnvecWrapper(VecEnvWrapper):
         super().__init__(venv)
         assert venv.num_envs == 1, "Error: cannot unwrap a environment wrapper that has more than one environment."
 
+    def seed(self, seed=None):
+        return self.venv.env_method('seed', seed)
+
     def reset(self):
         return self.venv.reset()[0]
 

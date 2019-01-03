@@ -2,6 +2,7 @@ import pytest
 
 from stable_baselines import A2C, ACER, ACKTR, DQN, DDPG, PPO1, PPO2, SAC, TRPO
 from stable_baselines.ddpg import AdaptiveParamNoiseSpec
+from stable_baselines.common import set_global_seeds
 from stable_baselines.common.identity_env import IdentityEnv, IdentityEnvBox
 from stable_baselines.common.vec_env import DummyVecEnv
 
@@ -19,6 +20,32 @@ LEARN_FUNC_DICT = {
     'sac': lambda e: SAC(policy="MlpPolicy", env=e).learn(total_timesteps=1000),
     'trpo': lambda e: TRPO(policy="MlpPolicy", env=e).learn(total_timesteps=1000),
 }
+
+N_STEPS_TRAINING = 1000
+SEED = 0
+
+# NOTE: not working with ACKTR yet
+@pytest.mark.parametrize("algo", [A2C, ACER, PPO1, PPO2, TRPO])
+def test_deterministic_training_common(algo):
+    results = [[], []]
+    rewards = [[], []]
+    for i in range(2):
+        set_global_seeds(0)
+        model = algo('MlpPolicy', 'CartPole-v1')
+        if hasattr(model.env, 'seed'):
+            model.env.seed(SEED)
+        else:
+            model.env.env_method("seed", SEED)
+        model.learn(N_STEPS_TRAINING)
+        env = model.get_env()
+        obs = env.reset()
+        for _ in range(100):
+            action, _ = model.predict(obs, deterministic=False)
+            obs, reward, _, _ = env.step(action)
+            results[i].append(action)
+            rewards[i].append(reward)
+    assert sum(results[0]) == sum(results[1]), print(results)
+    assert sum(rewards[0]) == sum(rewards[1]), print(rewards)
 
 
 @pytest.mark.slow

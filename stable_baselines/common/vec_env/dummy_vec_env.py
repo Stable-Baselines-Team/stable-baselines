@@ -12,7 +12,7 @@ class DummyVecEnv(VecEnv):
 
     :param env_fns: ([Gym Environment]) the list of environments to vectorize
     """
-    
+
     def __init__(self, env_fns):
         self.envs = [fn() for fn in env_fns]
         env = self.envs[0]
