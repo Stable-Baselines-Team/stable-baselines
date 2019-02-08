@@ -132,6 +132,7 @@ Using Callback: Monitoring Training
 You can define a custom callback function that will be called inside the agent.
 This could be useful when you want to monitor training, for instance display live
 learning curves in Tensorboard (or in Visdom) or save the best agent.
+If your callback returns False, training is aborted early.
 
 .. image:: ../_static/img/try_it.png
    :scale: 30 %
@@ -182,7 +183,7 @@ learning curves in Tensorboard (or in Visdom) or save the best agent.
                 print("Saving new best model")
                 _locals['self'].save(log_dir + 'best_model.pkl')
     n_steps += 1
-    return False
+    return True
 
 
   # Create log dir
@@ -299,7 +300,7 @@ However, you can also easily define a custom architecture for the policy network
   class CustomPolicy(FeedForwardPolicy):
       def __init__(self, *args, **kwargs):
           super(CustomPolicy, self).__init__(*args, **kwargs,
-                                             layers=[128, 128, 128],
+                                             net_arch=[dict(pi=[128, 128, 128], vf=[128, 128, 128])],
                                              feature_extraction="mlp")
 
   # Create and wrap the environment
@@ -348,6 +349,40 @@ You can also move from learning on one environment to another for `continual lea
       action, _states = model.predict(obs)
       obs, rewards, dones, info = env.step(action)
       env.render()
+
+
+Record a Video
+--------------
+
+Record a mp4 video (here using a random agent).
+
+.. note::
+
+  It requires ffmpeg or avconv to be installed on the machine.
+
+.. code-block:: python
+
+  import gym
+  from stable_baselines.common.vec_env import VecVideoRecorder, DummyVecEnv
+
+  env_id = 'CartPole-v1'
+  video_folder = 'logs/videos/'
+  video_length = 100
+
+  env = DummyVecEnv([lambda: gym.make(env_id)])
+
+  obs = env.reset()
+
+  # Record the video starting at the first step
+  env = VecVideoRecorder(env, video_folder,
+                         record_video_trigger=lambda x: x == 0, video_length=video_length,
+                         name_prefix="random-agent-{}".format(env_id))
+
+  env.reset()
+  for _ in range(video_length + 1):
+    action = [env.action_space.sample()]
+    obs, _, _, _ = env.step(action)
+  env.close()
 
 
 Bonus: Make a GIF of a Trained Agent

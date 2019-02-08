@@ -36,23 +36,15 @@ class PPO2(ActorCriticRLModel):
     :param verbose: (int) the verbosity level: 0 none, 1 training information, 2 tensorflow debug
     :param tensorboard_log: (str) the log location for tensorboard (if None, no logging)
     :param _init_setup_model: (bool) Whether or not to build the network at the creation of the instance
+    :param policy_kwargs: (dict) additional arguments to be passed to the policy on creation
     """
 
     def __init__(self, policy, env, gamma=0.99, n_steps=128, ent_coef=0.01, learning_rate=2.5e-4, vf_coef=0.5,
                  max_grad_norm=0.5, lam=0.95, nminibatches=4, noptepochs=4, cliprange=0.2, verbose=0,
-                 tensorboard_log=None, _init_setup_model=True):
+                 tensorboard_log=None, _init_setup_model=True, policy_kwargs=None):
 
         super(PPO2, self).__init__(policy=policy, env=env, verbose=verbose, requires_vec_env=True,
-                                   _init_setup_model=_init_setup_model)
-
-        if isinstance(learning_rate, float):
-            learning_rate = constfn(learning_rate)
-        else:
-            assert callable(learning_rate)
-        if isinstance(cliprange, float):
-            cliprange = constfn(cliprange)
-        else:
-            assert callable(cliprange)
+                                   _init_setup_model=_init_setup_model, policy_kwargs=policy_kwargs)
 
         self.learning_rate = learning_rate
         self.cliprange = cliprange
@@ -121,12 +113,12 @@ class PPO2(ActorCriticRLModel):
                     n_batch_train = self.n_batch // self.nminibatches
 
                 act_model = self.policy(self.sess, self.observation_space, self.action_space, self.n_envs, 1,
-                                        n_batch_step, reuse=False)
+                                        n_batch_step, reuse=False, **self.policy_kwargs)
                 with tf.variable_scope("train_model", reuse=True,
                                        custom_getter=tf_util.outer_scope_getter("train_model")):
                     train_model = self.policy(self.sess, self.observation_space, self.action_space,
                                               self.n_envs // self.nminibatches, self.n_steps, n_batch_train,
-                                              reuse=True)
+                                              reuse=True, **self.policy_kwargs)
 
                 with tf.variable_scope("loss", reuse=False):
                     self.action_ph = train_model.pdtype.sample_placeholder([None], name="action_ph")
@@ -140,9 +132,9 @@ class PPO2(ActorCriticRLModel):
                     neglogpac = train_model.proba_distribution.neglogp(self.action_ph)
                     self.entropy = tf.reduce_mean(train_model.proba_distribution.entropy())
 
-                    vpred = train_model.value_fn
+                    vpred = train_model._value
                     vpredclipped = self.old_vpred_ph + tf.clip_by_value(
-                        train_model.value_fn - self.old_vpred_ph, - self.clip_range_ph, self.clip_range_ph)
+                        train_model._value - self.old_vpred_ph, - self.clip_range_ph, self.clip_range_ph)
                     vf_losses1 = tf.square(vpred - self.rewards_ph)
                     vf_losses2 = tf.square(vpredclipped - self.rewards_ph)
                     self.vf_loss = .5 * tf.reduce_mean(tf.maximum(vf_losses1, vf_losses2))
@@ -164,6 +156,8 @@ class PPO2(ActorCriticRLModel):
 
                     with tf.variable_scope('model'):
                         self.params = tf.trainable_variables()
+                        for var in self.params:
+                            tf.summary.histogram(var.name, var)
                     grads = tf.gradients(loss, self.params)
                     if self.max_grad_norm is not None:
                         grads, _grad_norm = tf.clip_by_global_norm(grads, self.max_grad_norm)
@@ -230,9 +224,9 @@ class PPO2(ActorCriticRLModel):
             td_map[self.train_model.masks_ph] = masks
 
         if states is None:
-            update_fac = self.n_batch // self.nminibatches // self.noptepochs
+            update_fac = self.n_batch // self.nminibatches // self.noptepochs + 1
         else:
-            update_fac = self.n_batch // self.nminibatches // self.noptepochs // self.n_steps
+            update_fac = self.n_batch // self.nminibatches // self.noptepochs // self.n_steps + 1
 
         if writer is not None:
             # run loss backprop with summary, but once every 10 runs save the metadata (memory, compute time, ...)
@@ -254,7 +248,11 @@ class PPO2(ActorCriticRLModel):
 
         return policy_loss, value_loss, policy_entropy, approxkl, clipfrac
 
-    def learn(self, total_timesteps, callback=None, seed=None, log_interval=100, tb_log_name="PPO2"):
+    def learn(self, total_timesteps, callback=None, seed=None, log_interval=1, tb_log_name="PPO2"):
+        # Transform to callable if needed
+        self.learning_rate = get_schedule_fn(self.learning_rate)
+        self.cliprange = get_schedule_fn(self.cliprange)
+
         with SetVerbosity(self.verbose), TensorboardWriter(self.graph, self.tensorboard_log, tb_log_name) as writer:
             self._setup_learn(seed)
 
@@ -265,11 +263,11 @@ class PPO2(ActorCriticRLModel):
             t_first_start = time.time()
 
             nupdates = total_timesteps // self.n_batch
-            for update in range(nupdates + 1):
+            for update in range(1, nupdates + 1):
                 assert self.n_batch % self.nminibatches == 0
-                n_batch_train = self.n_batch // self.nminibatches
+                batch_size = self.n_batch // self.nminibatches
                 t_start = time.time()
-                frac = 1.0 - (update / (nupdates + 1))
+                frac = 1.0 - (update - 1.0) / nupdates
                 lr_now = self.learning_rate(frac)
                 cliprangenow = self.cliprange(frac)
                 # true_reward is the reward without discount
@@ -280,27 +278,27 @@ class PPO2(ActorCriticRLModel):
                     inds = np.arange(self.n_batch)
                     for epoch_num in range(self.noptepochs):
                         np.random.shuffle(inds)
-                        for start in range(0, self.n_batch, n_batch_train):
+                        for start in range(0, self.n_batch, batch_size):
                             timestep = ((update * self.noptepochs * self.n_batch + epoch_num * self.n_batch + start) //
-                                        n_batch_train)
-                            end = start + n_batch_train
+                                        batch_size)
+                            end = start + batch_size
                             mbinds = inds[start:end]
                             slices = (arr[mbinds] for arr in (obs, returns, masks, actions, values, neglogpacs))
                             mb_loss_vals.append(self._train_step(lr_now, cliprangenow, *slices, writer=writer,
                                                                  update=timestep))
                 else:  # recurrent version
                     assert self.n_envs % self.nminibatches == 0
-                    envinds = np.arange(self.n_envs)
-                    flatinds = np.arange(self.n_envs * self.n_steps).reshape(self.n_envs, self.n_steps)
-                    envsperbatch = n_batch_train // self.n_steps
+                    env_indices = np.arange(self.n_envs)
+                    flat_indices = np.arange(self.n_envs * self.n_steps).reshape(self.n_envs, self.n_steps)
+                    envs_per_batch = batch_size // self.n_steps
                     for epoch_num in range(self.noptepochs):
-                        np.random.shuffle(envinds)
-                        for start in range(0, self.n_envs, envsperbatch):
+                        np.random.shuffle(env_indices)
+                        for start in range(0, self.n_envs, envs_per_batch):
                             timestep = ((update * self.noptepochs * self.n_envs + epoch_num * self.n_envs + start) //
-                                        envsperbatch)
-                            end = start + envsperbatch
-                            mb_env_inds = envinds[start:end]
-                            mb_flat_inds = flatinds[mb_env_inds].ravel()
+                                        envs_per_batch)
+                            end = start + envs_per_batch
+                            mb_env_inds = env_indices[start:end]
+                            mb_flat_inds = flat_indices[mb_env_inds].ravel()
                             slices = (arr[mb_flat_inds] for arr in (obs, returns, masks, actions, values, neglogpacs))
                             mb_states = states[mb_env_inds]
                             mb_loss_vals.append(self._train_step(lr_now, cliprangenow, *slices, update=timestep,
@@ -316,14 +314,11 @@ class PPO2(ActorCriticRLModel):
                                                                       masks.reshape((self.n_envs, self.n_steps)),
                                                                       writer, update * (self.n_batch + 1))
 
-                if callback is not None:
-                    callback(locals(), globals())
-
-                if self.verbose >= 1 and ((update + 1) % log_interval//100 == 0 or update == 0):
+                if self.verbose >= 1 and (update % log_interval == 0 or update == 1):
                     explained_var = explained_variance(values, returns)
-                    logger.logkv("serial_timesteps", (update + 1) * self.n_steps)
-                    logger.logkv("nupdates", (update + 1))
-                    logger.logkv("total_timesteps", (update + 1) * self.n_batch)
+                    logger.logkv("serial_timesteps", update * self.n_steps)
+                    logger.logkv("nupdates", update)
+                    logger.logkv("total_timesteps", update * self.n_batch)
                     logger.logkv("fps", fps)
                     logger.logkv("explained_variance", float(explained_var))
                     logger.logkv('ep_rewmean', safe_mean([ep_info['r'] for ep_info in ep_info_buf]))
@@ -332,6 +327,12 @@ class PPO2(ActorCriticRLModel):
                     for (loss_val, loss_name) in zip(loss_vals, self.loss_names):
                         logger.logkv(loss_name, loss_val)
                     logger.dumpkvs()
+
+                if callback is not None:
+                    # Only stop training if return value is False, not when it is None. This is for backwards
+                    # compatibility with callbacks that have no return statement.
+                    if callback(locals(), globals()) == False:
+                        break
 
             return self
 
@@ -352,7 +353,8 @@ class PPO2(ActorCriticRLModel):
             "observation_space": self.observation_space,
             "action_space": self.action_space,
             "n_envs": self.n_envs,
-            "_vectorize_action": self._vectorize_action
+            "_vectorize_action": self._vectorize_action,
+            "policy_kwargs": self.policy_kwargs
         }
 
 
@@ -402,9 +404,9 @@ class Runner(AbstractEnvRunner):
                 clipped_actions = np.clip(actions, self.env.action_space.low, self.env.action_space.high)
             self.obs[:], rewards, self.dones, infos = self.env.step(clipped_actions)
             for info in infos:
-                maybeep_info = info.get('episode')
-                if maybeep_info:
-                    ep_infos.append(maybeep_info)
+                maybe_ep_info = info.get('episode')
+                if maybe_ep_info is not None:
+                    ep_infos.append(maybe_ep_info)
             mb_rewards.append(rewards)
         # batch of steps to batch of rollouts
         mb_obs = np.asarray(mb_obs, dtype=self.obs.dtype)
@@ -429,10 +431,27 @@ class Runner(AbstractEnvRunner):
             mb_advs[step] = last_gae_lam = delta + self.gamma * self.lam * nextnonterminal * last_gae_lam
         mb_returns = mb_advs + mb_values
 
-        mb_obs, mb_returns, mb_dones, mb_actions, mb_values, mb_neglogpacs = \
-            map(swap_and_flatten, (mb_obs, mb_returns, mb_dones, mb_actions, mb_values, mb_neglogpacs))
+        mb_obs, mb_returns, mb_dones, mb_actions, mb_values, mb_neglogpacs, true_reward = \
+            map(swap_and_flatten, (mb_obs, mb_returns, mb_dones, mb_actions, mb_values, mb_neglogpacs, true_reward))
 
         return mb_obs, mb_returns, mb_dones, mb_actions, mb_values, mb_neglogpacs, mb_states, ep_infos, true_reward
+
+
+def get_schedule_fn(value_schedule):
+    """
+    Transform (if needed) learning rate and clip range
+    to callable.
+
+    :param value_schedule: (callable or float)
+    :return: (function)
+    """
+    # If the passed schedule is a float
+    # create a constant function
+    if isinstance(value_schedule, float):
+        value_schedule = constfn(value_schedule)
+    else:
+        assert callable(value_schedule)
+    return value_schedule
 
 
 # obs, returns, masks, actions, values, neglogpacs, states = runner.run()
@@ -465,7 +484,7 @@ def constfn(val):
 def safe_mean(arr):
     """
     Compute the mean of an array if there is at least one element.
-    For empty array, return zero. It is used for logging only.
+    For empty array, return nan. It is used for logging only.
 
     :param arr: (np.ndarray)
     :return: (float)

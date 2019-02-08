@@ -1,8 +1,6 @@
 from setuptools import setup, find_packages
 import sys
 
-from stable_baselines import __version__
-
 if sys.version_info.major != 3:
     print('This Python is only compatible with Python 3, but you are running '
           'Python {}. The installation will likely fail.'.format(sys.version_info.major))
@@ -76,7 +74,7 @@ setup(name='stable_baselines',
       packages=[package for package in find_packages()
                 if package.startswith('stable_baselines')],
       install_requires=[
-          'gym[atari,classic_control]==0.10.5',
+          'gym[atari,classic_control]>=0.10.9',
           'scipy',
           'tqdm',
           'joblib',
@@ -84,7 +82,7 @@ setup(name='stable_baselines',
           'dill',
           'progressbar2',
           'mpi4py',
-          'cloudpickle',
+          'cloudpickle>=0.5.5',
           'tensorflow>=1.5.0',
           'click',
           'opencv-python',
@@ -114,7 +112,7 @@ setup(name='stable_baselines',
       license="MIT",
       long_description=long_description,
       long_description_content_type='text/markdown',
-      version=__version__,
+      version="2.4.1a",
       )
 
 # python setup.py sdist

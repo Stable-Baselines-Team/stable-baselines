@@ -34,14 +34,15 @@ class A2C(ActorCriticRLModel):
     :param tensorboard_log: (str) the log location for tensorboard (if None, no logging)
     :param _init_setup_model: (bool) Whether or not to build the network at the creation of the instance
                               (used only for loading)
+    :param policy_kwargs: (dict) additional arguments to be passed to the policy on creation
     """
 
     def __init__(self, policy, env, gamma=0.99, n_steps=5, vf_coef=0.25, ent_coef=0.01, max_grad_norm=0.5,
                  learning_rate=7e-4, alpha=0.99, epsilon=1e-5, lr_schedule='linear', verbose=0, tensorboard_log=None,
-                 _init_setup_model=True):
+                 _init_setup_model=True, policy_kwargs=None):
 
         super(A2C, self).__init__(policy=policy, env=env, verbose=verbose, requires_vec_env=True,
-                                  _init_setup_model=_init_setup_model)
+                                  _init_setup_model=_init_setup_model, policy_kwargs=policy_kwargs)
 
         self.n_steps = n_steps
         self.gamma = gamma
@@ -99,12 +100,12 @@ class A2C(ActorCriticRLModel):
                     n_batch_train = self.n_envs * self.n_steps
 
                 step_model = self.policy(self.sess, self.observation_space, self.action_space, self.n_envs, 1,
-                                         n_batch_step, reuse=False)
+                                         n_batch_step, reuse=False, **self.policy_kwargs)
 
                 with tf.variable_scope("train_model", reuse=True,
                                        custom_getter=tf_util.outer_scope_getter("train_model")):
                     train_model = self.policy(self.sess, self.observation_space, self.action_space, self.n_envs,
-                                              self.n_steps, n_batch_train, reuse=True)
+                                              self.n_steps, n_batch_train, reuse=True, **self.policy_kwargs)
 
                 with tf.variable_scope("loss", reuse=False):
                     self.actions_ph = train_model.pdtype.sample_placeholder([None], name="action_ph")
@@ -227,7 +228,10 @@ class A2C(ActorCriticRLModel):
                                                                       writer, update * (self.n_batch + 1))
 
                 if callback is not None:
-                    callback(locals(), globals())
+                    # Only stop training if return value is False, not when it is None. This is for backwards
+                    # compatibility with callbacks that have no return statement.
+                    if callback(locals(), globals()) == False:
+                        break
 
                 if self.verbose >= 1 and (update % log_interval == 0 or update == 1):
                     explained_var = explained_variance(values, rewards)
@@ -257,7 +261,8 @@ class A2C(ActorCriticRLModel):
             "observation_space": self.observation_space,
             "action_space": self.action_space,
             "n_envs": self.n_envs,
-            "_vectorize_action": self._vectorize_action
+            "_vectorize_action": self._vectorize_action,
+            "policy_kwargs": self.policy_kwargs
         }
 
 
@@ -324,4 +329,5 @@ class A2CRunner(AbstractEnvRunner):
         mb_actions = mb_actions.reshape(-1, *mb_actions.shape[2:])
         mb_values = mb_values.reshape(-1, *mb_values.shape[2:])
         mb_masks = mb_masks.reshape(-1, *mb_masks.shape[2:])
+        true_rewards = true_rewards.reshape(-1, *true_rewards.shape[2:])
         return mb_obs, mb_states, mb_rewards, mb_masks, mb_actions, mb_values, true_rewards

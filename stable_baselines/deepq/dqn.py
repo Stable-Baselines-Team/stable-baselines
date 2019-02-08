@@ -35,7 +35,9 @@ class DQN(OffPolicyRLModel):
             directory.
     :param learning_starts: (int) how many steps of the model to collect transitions for before learning starts
     :param target_network_update_freq: (int) update the target network every `target_network_update_freq` steps.
-    :param prioritized_replay_alpha: (float) alpha parameter for prioritized replay buffer
+    :param prioritized_replay: (bool) if True prioritized replay buffer will be used.
+    :param prioritized_replay_alpha: (float) alpha parameter for prioritized replay buffer.
+        It determines how much prioritization is used, with alpha=0 corresponding to the uniform case.
     :param prioritized_replay_beta0: (float) initial value of beta for prioritized replay buffer
     :param prioritized_replay_beta_iters: (int) number of iterations over which beta will be annealed from initial
             value to 1.0. If set to None equals to max_timesteps.
@@ -51,10 +53,11 @@ class DQN(OffPolicyRLModel):
                  checkpoint_freq=10000, checkpoint_path=None, learning_starts=1000, target_network_update_freq=500,
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_beta_iters=None,
                  prioritized_replay_eps=1e-6, param_noise=False, verbose=0, tensorboard_log=None,
-                 _init_setup_model=True):
+                 _init_setup_model=True, policy_kwargs=None):
 
-        super(DQN, self).__init__(policy=policy, env=env, replay_buffer=replay_buffer, verbose=verbose,
-                                  policy_base=DQNPolicy, requires_vec_env=False)
+        # TODO: replay_buffer refactoring
+        super(DQN, self).__init__(policy=policy, env=env, replay_buffer=replay_buffer, verbose=verbose, policy_base=DQNPolicy,
+                                  requires_vec_env=False, policy_kwargs=policy_kwargs)
 
         self.checkpoint_path = checkpoint_path
         self.param_noise = param_noise
@@ -112,7 +115,7 @@ class DQN(OffPolicyRLModel):
                 optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
 
                 self.act, self._train_step, self.update_target, self.step_model = deepq.build_train(
-                    q_func=self.policy,
+                    q_func=partial(self.policy, **self.policy_kwargs),
                     ob_space=self.observation_space,
                     ac_space=self.action_space,
                     optimizer=optimizer,
@@ -139,9 +142,11 @@ class DQN(OffPolicyRLModel):
                 self.replay_buffer_obj = self.replay_buffer(self.buffer_size, alpha=self.prioritized_replay_alpha)
                 if self.prioritized_replay_beta_iters is None:
                     prioritized_replay_beta_iters = total_timesteps
-                    self.beta_schedule = LinearSchedule(prioritized_replay_beta_iters,
-                                                        initial_p=self.prioritized_replay_beta0,
-                                                        final_p=1.0)
+                else:
+                    prioritized_replay_beta_iters = self.prioritized_replay_beta_iters
+                self.beta_schedule = LinearSchedule(prioritized_replay_beta_iters,
+                                                    initial_p=self.prioritized_replay_beta0,
+                                                    final_p=1.0)
             else:
                 self.replay_buffer_obj = self.replay_buffer(self.buffer_size)
                 self.beta_schedule = None
@@ -157,7 +162,10 @@ class DQN(OffPolicyRLModel):
 
             for step in range(total_timesteps):
                 if callback is not None:
-                    callback(locals(), globals())
+                    # Only stop training if return value is False, not when it is None. This is for backwards
+                    # compatibility with callbacks that have no return statement.
+                    if callback(locals(), globals()) == False:
+                        break
                 # Take action and update exploration to the newest value
                 kwargs = {}
                 if not self.param_noise:
@@ -260,12 +268,21 @@ class DQN(OffPolicyRLModel):
 
         return actions, None
 
-    def action_probability(self, observation, state=None, mask=None):
+    def action_probability(self, observation, state=None, mask=None, actions=None):
         observation = np.array(observation)
         vectorized_env = self._is_vectorized_observation(observation, self.observation_space)
 
         observation = observation.reshape((-1,) + self.observation_space.shape)
         actions_proba = self.proba_step(observation, state, mask)
+
+        if actions is not None:  # comparing the action distribution, to given actions
+            actions = np.array([actions])
+            assert isinstance(self.action_space, gym.spaces.Discrete)
+            actions = actions.reshape((-1,))
+            assert observation.shape[0] == actions.shape[0], "Error: batch sizes differ for actions and observations."
+            actions_proba = actions_proba[np.arange(actions.shape[0]), actions]
+            # normalize action proba shape
+            actions_proba = actions_proba.reshape((-1, 1))
 
         if not vectorized_env:
             if state is not None:
@@ -297,12 +314,18 @@ class DQN(OffPolicyRLModel):
             "action_space": self.action_space,
             "policy": self.policy,
             "n_envs": self.n_envs,
-            "_vectorize_action": self._vectorize_action
+            "_vectorize_action": self._vectorize_action,
+            "policy_kwargs": self.policy_kwargs
         }
 
     @classmethod
     def load(cls, load_path, env=None, **kwargs):
         data, params = cls._load_from_file(load_path)
+
+        if 'policy_kwargs' in kwargs and kwargs['policy_kwargs'] != data['policy_kwargs']:
+            raise ValueError("The specified policy kwargs do not equal the stored policy kwargs. "
+                             "Stored kwargs: {}, specified kwargs: {}".format(data['policy_kwargs'],
+                                                                              kwargs['policy_kwargs']))
 
         model = cls(policy=data["policy"], env=env, _init_setup_model=False)
         model.__dict__.update(data)

@@ -33,7 +33,7 @@ Notes
 Can I use?
 ----------
 
--  Reccurent policies: ❌
+-  Recurrent policies: ❌
 -  Multi processing: ❌
 -  Gym spaces:
 
@@ -147,11 +147,11 @@ You can easily define a custom architecture for the policy network:
   from stable_baselines.common.vec_env import DummyVecEnv
   from stable_baselines import DQN
 
-  # Custom MLP policy of three layers of size 128 each
+  # Custom MLP policy of two layers of size 32 each
   class CustomPolicy(FeedForwardPolicy):
       def __init__(self, *args, **kwargs):
           super(CustomPolicy, self).__init__(*args, **kwargs,
-                                             layers=[128, 128, 128],
+                                             layers=[32, 32],
                                              layer_norm=False,
                                              feature_extraction="mlp")
 

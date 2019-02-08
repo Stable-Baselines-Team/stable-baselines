@@ -37,14 +37,15 @@ class PPO1(ActorCriticRLModel):
     :param verbose: (int) the verbosity level: 0 none, 1 training information, 2 tensorflow debug
     :param tensorboard_log: (str) the log location for tensorboard (if None, no logging)
     :param _init_setup_model: (bool) Whether or not to build the network at the creation of the instance
+    :param policy_kwargs: (dict) additional arguments to be passed to the policy on creation
     """
 
     def __init__(self, policy, env, gamma=0.99, timesteps_per_actorbatch=256, clip_param=0.2, entcoeff=0.01,
                  optim_epochs=4, optim_stepsize=1e-3, optim_batchsize=64, lam=0.95, adam_epsilon=1e-5,
-                 schedule='linear', verbose=0, tensorboard_log=None, _init_setup_model=True):
+                 schedule='linear', verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None):
 
         super().__init__(policy=policy, env=env, verbose=verbose, requires_vec_env=False,
-                         _init_setup_model=_init_setup_model)
+                         _init_setup_model=_init_setup_model, policy_kwargs=policy_kwargs)
 
         self.gamma = gamma
         self.timesteps_per_actorbatch = timesteps_per_actorbatch
@@ -85,12 +86,12 @@ class PPO1(ActorCriticRLModel):
 
                 # Construct network for new policy
                 self.policy_pi = self.policy(self.sess, self.observation_space, self.action_space, self.n_envs, 1,
-                                             None, reuse=False)
+                                             None, reuse=False, **self.policy_kwargs)
 
                 # Network for old policy
                 with tf.variable_scope("oldpi", reuse=False):
                     old_pi = self.policy(self.sess, self.observation_space, self.action_space, self.n_envs, 1,
-                                         None, reuse=False)
+                                         None, reuse=False, **self.policy_kwargs)
 
                 with tf.variable_scope("loss", reuse=False):
                     # Target advantage function (if applicable)
@@ -198,8 +199,11 @@ class PPO1(ActorCriticRLModel):
                 self.episode_reward = np.zeros((self.n_envs,))
 
                 while True:
-                    if callback:
-                        callback(locals(), globals())
+                    if callback is not None:
+                        # Only stop training if return value is False, not when it is None. This is for backwards
+                        # compatibility with callbacks that have no return statement.
+                        if callback(locals(), globals()) == False:
+                            break
                     if total_timesteps and timesteps_so_far >= total_timesteps:
                         break
 
@@ -293,8 +297,9 @@ class PPO1(ActorCriticRLModel):
                     lens, rews = map(flatten_lists, zip(*listoflrpairs))
                     lenbuffer.extend(lens)
                     rewbuffer.extend(rews)
-                    logger.record_tabular("EpLenMean", np.mean(lenbuffer))
-                    logger.record_tabular("EpRewMean", np.mean(rewbuffer))
+                    if len(lenbuffer) > 0:
+                        logger.record_tabular("EpLenMean", np.mean(lenbuffer))
+                        logger.record_tabular("EpRewMean", np.mean(rewbuffer))
                     logger.record_tabular("EpThisIter", len(lens))
                     episodes_so_far += len(lens)
                     timesteps_so_far += MPI.COMM_WORLD.allreduce(seg["total_timestep"])
@@ -324,5 +329,6 @@ class PPO1(ActorCriticRLModel):
             "observation_space": self.observation_space,
             "action_space": self.action_space,
             "n_envs": self.n_envs,
-            "_vectorize_action": self._vectorize_action
+            "_vectorize_action": self._vectorize_action,
+            "policy_kwargs": self.policy_kwargs
         }
