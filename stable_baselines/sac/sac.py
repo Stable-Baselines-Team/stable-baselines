@@ -477,8 +477,8 @@ class SAC(OffPolicyRLModel):
 
         return actions, None
 
-    def save(self, save_path):
-        data = {
+    def get_save_data(self, save_path):
+        return {
             "learning_rate": self.learning_rate,
             "buffer_size": self.buffer_size,
             "learning_starts": self.learning_starts,
@@ -500,6 +500,9 @@ class SAC(OffPolicyRLModel):
             "_vectorize_action": self._vectorize_action,
             "policy_kwargs": self.policy_kwargs
         }
+
+    def save(self, save_path):
+        data = self.get_save_data()
 
         params = self.sess.run(self.params)
         target_params = self.sess.run(self.target_params)

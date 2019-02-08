@@ -999,6 +999,8 @@ class DDPG(OffPolicyRLModel):
             "policy_kwargs": self.policy_kwargs
         }
 
+    def save(self, save_path):
+        data = self.get_save_data()
         params = self.sess.run(self.params)
         target_params = self.sess.run(self.target_params)
 
