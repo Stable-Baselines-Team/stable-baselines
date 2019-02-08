@@ -477,7 +477,7 @@ class SAC(OffPolicyRLModel):
 
         return actions, None
 
-    def get_save_data(self, save_path):
+    def get_save_data(self):
         return {
             "learning_rate": self.learning_rate,
             "buffer_size": self.buffer_size,
