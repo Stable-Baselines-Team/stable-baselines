@@ -55,18 +55,19 @@ class HER(OffPolicyRLModel):
             env = HERWrapper(self.env, self.reward_function, goal_sampling=self.goal_sampling)
         self.model.set_env(env)
 
-    def learn(self, total_timesteps, callback=None, seed=None, log_interval=100, tb_log_name=None):
+    def learn(self, total_timesteps, callback=None, seed=None,
+              log_interval=100, tb_log_name=None, reset_num_timesteps=True):
         if tb_log_name is None:
             tb_log_name = "HER_{}".format(self.model_class.__name__)
         self.model.learn(total_timesteps=total_timesteps, callback=callback, seed=seed, log_interval=log_interval,
-                         tb_log_name=tb_log_name)
+                         tb_log_name=tb_log_name, reset_num_timesteps=reset_num_timesteps)
         return self
 
     def predict(self, observation, state=None, mask=None, deterministic=False):
         return self.model.predict(observation, state=state, mask=mask, deterministic=deterministic)
 
-    def action_probability(self, observation, state=None, mask=None):
-        return self.model.action_probability(observation, state=state, mask=mask)
+    def action_probability(self, observation, state=None, mask=None, actions=None):
+        pass
 
     def get_save_data(self):
         return {
