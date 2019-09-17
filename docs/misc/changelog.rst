@@ -27,6 +27,7 @@ New Features:
 ^^^^^^^^^^^^^
 - **important change** Switch to using zip-archived JSON and Numpy `savez` for
   storing models for better support across library/Python versions. (@Miffyli)
+- ACKTR now supports continuous actions
 
 Bug Fixes:
 ^^^^^^^^^^
@@ -50,7 +51,10 @@ Others:
   to `stable_baselines.common.noise`. The API remains backward-compatible;
   for example `from stable_baselines.ddpg.noise import NormalActionNoise` is still
   okay. (@shwang)
-- docker images were updated
+- Docker images were updated
+- Cleaned up files in `common/` folder and in `acktr/` folder that were only used by old ACKTR version
+  (e.g. `filter.py`)
+- Renamed `acktr_disc.py` to `acktr.py`
 
 Documentation:
 ^^^^^^^^^^^^^^
