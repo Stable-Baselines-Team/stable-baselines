@@ -7,6 +7,7 @@ from gym.spaces import Box, Discrete
 
 from stable_baselines import logger
 from stable_baselines.a2c.a2c import A2CRunner
+from stable_baselines.ppo2.ppo2 import Runner as PPO2Runner
 from stable_baselines.a2c.utils import Scheduler, mse, \
     total_episode_reward_logger
 from stable_baselines.acktr import kfac
@@ -25,7 +26,7 @@ from stable_baselines.ppo2.ppo2 import safe_mean
 # - action rescaled as if they were in [-1, 1]
 # - they normalize the input (VecNormalize should do the trick)
 # - value function updated for 25 iterations after the policy
-# - GAE used?
+# - GAE used
 # mujoco params: gamma=0.99, lam=0.97, timesteps_per_batch=2500, desired_kl=0.002
 
 
@@ -52,6 +53,8 @@ class ACKTR(ActorCriticRLModel):
     :param async_eigen_decomp: (bool) Use async eigen decomposition
     :param kfac_update: (int) update kfac after kfac_update steps
     :param policy_kwargs: (dict) additional arguments to be passed to the policy on creation
+    :param lam: (float) Factor for trade-off of bias vs variance for Generalized Advantage Estimator
+        If negative (default), then the classic advantage will be used instead of GAE
     :param full_tensorboard_log: (bool) enable additional logging when using tensorboard
         WARNING: this logging can take a lot of space quickly
     """
@@ -59,7 +62,7 @@ class ACKTR(ActorCriticRLModel):
     def __init__(self, policy, env, gamma=0.99, nprocs=1, n_steps=20, ent_coef=0.01, vf_coef=0.25, vf_fisher_coef=1.0,
                  learning_rate=0.25, max_grad_norm=0.5, kfac_clip=0.001, lr_schedule='linear', verbose=0,
                  tensorboard_log=None, _init_setup_model=True, async_eigen_decomp=False, kfac_update=1,
-                 policy_kwargs=None, full_tensorboard_log=False):
+                 lam=-1, policy_kwargs=None, full_tensorboard_log=False):
 
         super(ACKTR, self).__init__(policy=policy, env=env, verbose=verbose, requires_vec_env=True,
                                     _init_setup_model=_init_setup_model, policy_kwargs=policy_kwargs)
@@ -78,6 +81,7 @@ class ACKTR(ActorCriticRLModel):
         self.async_eigen_decomp = async_eigen_decomp
         self.full_tensorboard_log = full_tensorboard_log
         self.kfac_update = kfac_update
+        self.lam = lam
 
         self.graph = None
         self.sess = None
@@ -311,7 +315,12 @@ class ACKTR(ActorCriticRLModel):
 
             self.trained = True
 
-            runner = A2CRunner(self.env, self, n_steps=self.n_steps, gamma=self.gamma)
+            # Use GAE
+            if self.lam > 0:
+                runner = PPO2Runner(env=self.env, model=self, n_steps=self.n_steps, gamma=self.gamma, lam=self.lam)
+            else:
+                runner = A2CRunner(self.env, self, n_steps=self.n_steps, gamma=self.gamma)
+
             self.episode_reward = np.zeros((self.n_envs,))
 
             t_start = time.time()
@@ -326,9 +335,14 @@ class ACKTR(ActorCriticRLModel):
 
             for update in range(1, total_timesteps // self.n_batch + 1):
                 # true_reward is the reward without discount
-                obs, states, rewards, masks, actions, values, ep_infos, true_reward = runner.run()
+                if isinstance(runner, PPO2Runner):
+                    # We are using GAE
+                    obs, returns, masks, actions, values, _, states, ep_infos, true_reward = runner.run()
+                else:
+                    obs, states, returns, masks, actions, values, ep_infos, true_reward = runner.run()
+
                 ep_info_buf.extend(ep_infos)
-                policy_loss, value_loss, policy_entropy = self._train_step(obs, states, rewards, masks, actions, values,
+                policy_loss, value_loss, policy_entropy = self._train_step(obs, states, returns, masks, actions, values,
                                                                            self.num_timesteps // (self.n_batch + 1),
                                                                            writer)
                 n_seconds = time.time() - t_start
@@ -347,7 +361,7 @@ class ACKTR(ActorCriticRLModel):
                         break
 
                 if self.verbose >= 1 and (update % log_interval == 0 or update == 1):
-                    explained_var = explained_variance(values, rewards)
+                    explained_var = explained_variance(values, returns)
                     logger.record_tabular("nupdates", update)
                     logger.record_tabular("total_timesteps", self.num_timesteps)
                     logger.record_tabular("fps", fps)
@@ -370,6 +384,7 @@ class ACKTR(ActorCriticRLModel):
     def save(self, save_path, cloudpickle=False):
         data = {
             "gamma": self.gamma,
+            "lam": self.lam,
             "nprocs": self.nprocs,
             "n_steps": self.n_steps,
             "vf_coef": self.vf_coef,
