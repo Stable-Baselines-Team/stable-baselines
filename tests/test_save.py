@@ -12,7 +12,7 @@ from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines.common.evaluation import evaluate_policy
 from stable_baselines.common.policies import MlpPolicy, FeedForwardPolicy
 
-N_EVAL_EPISODES = 100
+N_EVAL_EPISODES = 50
 
 MODEL_LIST = [
     A2C,
@@ -60,8 +60,7 @@ def test_model_manipulation(request, model_class, storage_method, store_format):
         model = model_class(policy="MlpPolicy", env=env)
         model.learn(total_timesteps=50000)
 
-        # predict and measure the acc reward
-        acc_reward, _ = evaluate_policy(model, env, n_eval_episodes=N_EVAL_EPISODES)
+        mean_reward, _ = evaluate_policy(model, env, n_eval_episodes=N_EVAL_EPISODES)
 
         # test action probability for given (obs, action) pair
         env = model.get_env()
@@ -98,22 +97,22 @@ def test_model_manipulation(request, model_class, storage_method, store_format):
         model.set_env(env)
 
         # predict the same output before saving
-        loaded_acc_reward, _ = evaluate_policy(model, env, n_eval_episodes=N_EVAL_EPISODES)
-
-        assert abs(acc_reward - loaded_acc_reward) < 0.1, "Error: the prediction seems to have changed between " \
-                                                          "loading and saving"
+        loaded_mean_reward, _ = evaluate_policy(model, env, n_eval_episodes=N_EVAL_EPISODES)
+        # Allow 10% diff
+        assert abs((mean_reward - loaded_mean_reward) / mean_reward) < 0.1, "Error: the prediction seems to have changed between " \
+                                                                            "loading and saving"
 
         # learn post loading
         model.learn(total_timesteps=100)
 
         # validate no reset post learning
-        loaded_acc_reward, _ = evaluate_policy(model, env, n_eval_episodes=N_EVAL_EPISODES)
+        loaded_mean_reward, _ = evaluate_policy(model, env, n_eval_episodes=N_EVAL_EPISODES)
 
-        assert abs(acc_reward - loaded_acc_reward) < 0.1, "Error: the prediction seems to have changed between " \
-                                                          "pre learning and post learning"
+        assert abs((mean_reward - loaded_mean_reward) / mean_reward) < 0.1, "Error: the prediction seems to have changed between " \
+                                                                            "pre learning and post learning"
 
         # predict new values
-        loaded_acc_reward, _ = evaluate_policy(model, env, n_eval_episodes=N_EVAL_EPISODES)
+        evaluate_policy(model, env, n_eval_episodes=N_EVAL_EPISODES)
 
         del model, env
 
