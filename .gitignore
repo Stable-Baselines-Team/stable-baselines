@@ -11,6 +11,7 @@
 __pycache__/
 _build/
 *.npz
+*.zip
 
 # Setuptools distribution and build folders.
 /dist/

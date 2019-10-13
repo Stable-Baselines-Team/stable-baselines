@@ -10,9 +10,10 @@ from stable_baselines import A2C, ACER, ACKTR, DQN, PPO1, PPO2, TRPO
 from stable_baselines.common import set_global_seeds
 from stable_baselines.common.identity_env import IdentityEnv
 from stable_baselines.common.vec_env import DummyVecEnv
+from stable_baselines.common.evaluation import evaluate_policy
 from stable_baselines.common.policies import MlpPolicy, FeedForwardPolicy
 
-N_TRIALS = 2000
+N_EVAL_EPISODES = 50
 
 MODEL_LIST = [
     A2C,
@@ -44,11 +45,11 @@ def test_model_manipulation(request, model_class, storage_method, store_format):
     works and that the action prediction works
 
     :param model_class: (BaseRLModel) A RL model
-    :param storage_method: (str) Should file be saved to a file ("path") or to a buffer 
+    :param storage_method: (str) Should file be saved to a file ("path") or to a buffer
         ("file-like")
     :param store_format: (str) Save format, either "zip" or "cloudpickle".
     """
-    
+
     # Use postfix ".model" so we can remove the file later
     model_fname = './test_model_{}.model'.format(request.node.name)
     store_as_cloudpickle = store_format == "cloudpickle"
@@ -61,16 +62,7 @@ def test_model_manipulation(request, model_class, storage_method, store_format):
         model.learn(total_timesteps=50000)
 
         # predict and measure the acc reward
-        acc_reward = 0
-        set_global_seeds(0)
-        obs = env.reset()
-        for _ in range(N_TRIALS):
-            action, _ = model.predict(obs)
-            # Test action probability method
-            model.action_probability(obs)
-            obs, reward, _, _ = env.step(action)
-            acc_reward += reward
-        acc_reward = sum(acc_reward) / N_TRIALS
+        acc_reward, _ = evaluate_policy(model, env, n_eval_episodes=N_EVAL_EPISODES)
 
         # test action probability for given (obs, action) pair
         env = model.get_env()
@@ -107,14 +99,8 @@ def test_model_manipulation(request, model_class, storage_method, store_format):
         model.set_env(env)
 
         # predict the same output before saving
-        loaded_acc_reward = 0
-        set_global_seeds(0)
-        obs = env.reset()
-        for _ in range(N_TRIALS):
-            action, _ = model.predict(obs)
-            obs, reward, _, _ = env.step(action)
-            loaded_acc_reward += reward
-        loaded_acc_reward = sum(loaded_acc_reward) / N_TRIALS
+        loaded_acc_reward, _ = evaluate_policy(model, env, n_eval_episodes=N_EVAL_EPISODES)
+
         assert abs(acc_reward - loaded_acc_reward) < 0.1, "Error: the prediction seems to have changed between " \
                                                           "loading and saving"
 
@@ -122,22 +108,13 @@ def test_model_manipulation(request, model_class, storage_method, store_format):
         model.learn(total_timesteps=100)
 
         # validate no reset post learning
-        loaded_acc_reward = 0
-        set_global_seeds(0)
-        obs = env.reset()
-        for _ in range(N_TRIALS):
-            action, _ = model.predict(obs)
-            obs, reward, _, _ = env.step(action)
-            loaded_acc_reward += reward
-        loaded_acc_reward = sum(loaded_acc_reward) / N_TRIALS
+        loaded_acc_reward, _ = evaluate_policy(model, env, n_eval_episodes=N_EVAL_EPISODES)
+
         assert abs(acc_reward - loaded_acc_reward) < 0.1, "Error: the prediction seems to have changed between " \
                                                           "pre learning and post learning"
 
         # predict new values
-        obs = env.reset()
-        for _ in range(N_TRIALS):
-            action, _ = model.predict(obs)
-            obs, _, _, _ = env.step(action)
+        loaded_acc_reward, _ = evaluate_policy(model, env, n_eval_episodes=N_EVAL_EPISODES)
 
         del model, env
 

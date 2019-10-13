@@ -15,8 +15,8 @@ def check_shape(make_env, model_class, shape_1, shape_2):
     env1 = DummyVecEnv([lambda: make_env()])
 
     for env, expected_shape in [(env0, shape_1), (env1, shape_2)]:
-        def callback(_obs, action, _done, _episode_reward, _model, _info):
-            assert np.array(action).shape == expected_shape
+        def callback(locals_, _globals):
+            assert np.array(locals_['action']).shape == expected_shape
         evaluate_policy(model, env, n_eval_episodes=5, callback=callback)
 
     # Free memory
