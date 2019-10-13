@@ -8,7 +8,6 @@ import numpy as np
 from stable_baselines import A2C, ACKTR, SAC, DDPG, PPO1, PPO2, TRPO, TD3
 # TODO: add support for continuous actions
 # from stable_baselines.acer import ACER
-from stable_baselines.common import set_global_seeds
 from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines.common.identity_env import IdentityEnvBox
 from stable_baselines.ddpg import AdaptiveParamNoiseSpec, NormalActionNoise

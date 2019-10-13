@@ -5,7 +5,6 @@ from stable_baselines import A2C, ACER, ACKTR, DQN, DDPG, SAC, PPO1, PPO2, TD3, 
 from stable_baselines.ddpg import NormalActionNoise
 from stable_baselines.common.identity_env import IdentityEnv, IdentityEnvBox
 from stable_baselines.common.vec_env import DummyVecEnv
-from stable_baselines.common import set_global_seeds
 from stable_baselines.common.evaluation import evaluate_policy
 
 
