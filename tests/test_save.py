@@ -13,7 +13,7 @@ from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines.common.evaluation import evaluate_policy
 from stable_baselines.common.policies import MlpPolicy, FeedForwardPolicy
 
-N_EVAL_EPISODES = 50
+N_EVAL_EPISODES = 100
 
 MODEL_LIST = [
     A2C,

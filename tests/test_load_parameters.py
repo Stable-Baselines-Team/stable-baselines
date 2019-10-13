@@ -4,7 +4,7 @@ from io import BytesIO
 import pytest
 import numpy as np
 
-from stable_baselines import A2C, ACER, ACKTR, DQN, PPO1, PPO2, SAC, TD3, TRPO
+from stable_baselines import A2C, ACER, ACKTR, DQN, PPO1, PPO2, TRPO
 from stable_baselines.common.identity_env import IdentityEnv
 from stable_baselines.common.vec_env import DummyVecEnv
 
@@ -15,8 +15,6 @@ MODEL_LIST = [
     DQN,
     PPO1,
     PPO2,
-    SAC,
-    TD3,
     TRPO,
 ]
 
