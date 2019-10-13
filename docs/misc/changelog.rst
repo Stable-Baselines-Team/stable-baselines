@@ -35,6 +35,7 @@ Deprecations:
 Others:
 ^^^^^^^
 - Add upper bound for Tensorflow version (<2.0.0).
+- Refactored test to remove duplicated code
 
 Documentation:
 ^^^^^^^^^^^^^^

@@ -17,7 +17,7 @@ from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
 
 def make_vec_env(env_id, n_envs=1, seed=None, start_index=0,
                  use_subprocess=False, start_method=None,
-                 monitor_path=None, wrapper=None, env_kwargs=None):
+                 monitor_path=None, wrapper_class=None, env_kwargs=None):
     """
     Create a wrapped, monitored VecEnv.
 
@@ -45,10 +45,14 @@ def make_vec_env(env_id, n_envs=1, seed=None, start_index=0,
                 env.action_space.seed(seed)
             # Wrap the env in a Monitor wrapper
             # to have additional training information
+            monitor_path = os.path.join(monitor_path, str(rank)) if monitor_path is not None else None
+            # Create the monitor folder if needed
+            if monitor_path is not None:
+                os.makedirs(log_dir, exist_ok=True)
             env = Monitor(env, filename=monitor_path)
             # Optionally, wrap the environment with the provided wrapper
-            if wrapper is not None:
-                env = wrapper(env)
+            if wrapper_class is not None:
+                env = wrapper_class(env)
             return env
         return _init
 

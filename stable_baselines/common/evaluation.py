@@ -4,7 +4,9 @@ import numpy as np
 def evaluate_policy(model, env, n_eval_episodes=10, deterministic=True,
                     render=False, callback=None, min_reward=None):
     """
-    Runs policy for n episodes and returns average reward
+    Runs policy for n episodes and returns average reward.
+    This is made to work only with one env.
+
     :param model: (RL model)
     :param env: (gym.Env)
     :param n_eval_episodes: (int) Number of episode to evalute the agent
@@ -22,10 +24,10 @@ def evaluate_policy(model, env, n_eval_episodes=10, deterministic=True,
         episode_reward = 0.0
         while not done:
             action, state = model.predict(obs, state=state, deterministic=deterministic)
-            if callback is not None:
-                callback(obs, action, done, episode_reward, model)
-            obs, reward, done, _ = env.step(action)
+            obs, reward, done, info = env.step(action)
             episode_reward += reward
+            if callback is not None:
+                callback(obs, action, done, episode_reward, model, info)
             n_steps += 1
             if render:
                 env.render()
