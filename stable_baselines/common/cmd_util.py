@@ -15,8 +15,56 @@ from stable_baselines.common.misc_util import mpi_rank_or_zero
 from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
 
 
+def make_vec_env(env_id, n_envs=1, seed=None, start_index=0,
+                 use_subprocess=False, start_method=None,
+                 monitor_path=None, wrapper=None, env_kwargs=None):
+    """
+    Create a wrapped, monitored VecEnv.
+
+    :param env_id: (str or gym.Env) the environment ID or the environment class
+    :param n_envs: (int) the number of environment you wish to have in parallel
+    :param seed: (int) the inital seed for random number generator
+    :param start_index: (int) start rank index
+    :param start_method: (str) method used to start the subprocesses.
+        See SubprocVecEnv doc for more information
+    :param use_subprocess: (bool) Whether to use `SubprocVecEnv` or `DummyVecEnv` when
+        `n_envs` > 1, `DummyVecEnv` is usually faster. Default: False
+    :param wrapper: (gym.Wrapper) Additional wrapper to use on the environment
+    :param env_kwargs: (dict) Optional keyword argument to pass to the env constructor
+    :return: (VecEnv) The wrapped environment
+    """
+    env_kwargs = {} if env_kwargs is None else env_kwargs
+    def make_env(rank):
+        def _init():
+            if isinstance(env_id, str):
+                env = gym.make(env_id)
+            else:
+                env = env_id(**env_kwargs)
+            if seed is not None:
+                env.seed(seed)
+                env.action_space.seed(seed)
+            # Wrap the env in a Monitor wrapper
+            # to have additional training information
+            env = Monitor(env, filename=monitor_path)
+            # Optionally, wrap the environment with the provided wrapper
+            if wrapper is not None:
+                env = wrapper(env)
+            return env
+        return _init
+
+    if seed is not None:
+        set_global_seeds(seed)
+
+    if n_envs == 1 or not use_subprocess:
+        return DummyVecEnv([make_env(i + start_index) for i in range(n_envs)])
+
+    return SubprocVecEnv([make_env(i + start_index) for i in range(n_envs)],
+                         start_method=start_method)
+
+
 def make_atari_env(env_id, num_env, seed, wrapper_kwargs=None,
-                   start_index=0, allow_early_resets=True, start_method=None):
+                   start_index=0, allow_early_resets=True,
+                   start_method=None, use_subprocess=True):
     """
     Create a wrapped, monitored SubprocVecEnv for Atari.
 
@@ -26,9 +74,11 @@ def make_atari_env(env_id, num_env, seed, wrapper_kwargs=None,
     :param wrapper_kwargs: (dict) the parameters for wrap_deepmind function
     :param start_index: (int) start rank index
     :param allow_early_resets: (bool) allows early reset of the environment
-    :return: (Gym Environment) The atari environment
     :param start_method: (str) method used to start the subprocesses.
         See SubprocVecEnv doc for more information
+    :param use_subprocess: (bool) Whether to use `SubprocVecEnv` or `DummyVecEnv` when
+        `num_env` > 1, `DummyVecEnv` is usually faster. Default: True
+    :return: (VecEnv) The atari environment
     """
     if wrapper_kwargs is None:
         wrapper_kwargs = {}
@@ -44,8 +94,8 @@ def make_atari_env(env_id, num_env, seed, wrapper_kwargs=None,
     set_global_seeds(seed)
 
     # When using one environment, no need to start subprocesses
-    if num_env == 1:
-        return DummyVecEnv([make_env(0)])
+    if num_env == 1 or not use_subprocess:
+        return DummyVecEnv([make_env(i + start_index) for i in range(num_env)])
 
     return SubprocVecEnv([make_env(i + start_index) for i in range(num_env)],
                          start_method=start_method)

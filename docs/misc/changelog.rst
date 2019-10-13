@@ -13,10 +13,14 @@ Breaking Changes:
 ^^^^^^^^^^^^^^^^^
 - The `seed` argument has been moved from `learn()` method to model constructor
   in order to have reproducible results
+- `allow_early_resets` of the `Monitor` wrapper now default to `True`
 
 New Features:
 ^^^^^^^^^^^^^
 - Add `n_cpu_tf_sess` to model constructor to choose the number of threads used by Tensorflow
+- Environments are automatically wrap in a `DummyVecEnv` if needed when passing them to the model constructor
+- Added `stable_baselines.common.make_vec_env` helper to simplify VecEnv creation
+- Added `stable_baselines.common.evaluation.evaluate_policy` helper to simplify model evaluation
 
 Bug Fixes:
 ^^^^^^^^^^
@@ -37,6 +41,8 @@ Documentation:
 - Add Snake Game AI project (@pedrohbtp)
 - Add note on the support Tensorflow versions.
 - Remove unnecessary steps required for Windows installation.
+- Remove `DummyVecEnv` creation when not needed
+- Added `make_vec_env` to the examples to simplify VecEnv creation
 
 Release 2.8.0 (2019-09-29)
 --------------------------
