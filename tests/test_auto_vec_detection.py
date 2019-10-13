@@ -9,10 +9,10 @@ from stable_baselines.common.evaluation import evaluate_policy
 
 
 def check_shape(make_env, model_class, shape_1, shape_2):
-    model = model_class(policy="MlpPolicy", env=DummyVecEnv([make_env()]))
+    model = model_class(policy="MlpPolicy", env=DummyVecEnv([make_env]))
 
     env0 = make_env()
-    env1 = DummyVecEnv([make_env()])
+    env1 = DummyVecEnv([make_env])
 
     for env, expected_shape in [(env0, shape_1), (env1, shape_2)]:
         def callback(locals_, _globals):
