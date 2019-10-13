@@ -38,7 +38,7 @@ def test_gail(expert_env):
     model = model.load("GAIL-{}".format(env_id), env=env)
     model.learn(1000)
 
-    evaluate_policy(model env, n_eval_episodes=5)
+    evaluate_policy(model, env, n_eval_episodes=5)
     obs = env.reset()
     del dataset, model
 
