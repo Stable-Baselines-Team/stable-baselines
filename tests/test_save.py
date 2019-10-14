@@ -112,7 +112,7 @@ def test_model_manipulation(request, model_class, storage_method, store_format):
         env.envs[0].action_space.seed(0)
         loaded_mean_reward, _ = evaluate_policy(model, env, deterministic=True, n_eval_episodes=N_EVAL_EPISODES)
 
-        assert abs((mean_reward - loaded_mean_reward) / mean_reward) < 0.1, "Error: the prediction seems to have changed between " \
+        assert abs((mean_reward - loaded_mean_reward) / mean_reward) < 0.15, "Error: the prediction seems to have changed between " \
                                                                             "pre learning and post learning"
 
         # predict new values
