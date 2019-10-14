@@ -29,7 +29,10 @@ def make_vec_env(env_id, n_envs=1, seed=None, start_index=0,
         See SubprocVecEnv doc for more information
     :param use_subprocess: (bool) Whether to use `SubprocVecEnv` or `DummyVecEnv` when
         `n_envs` > 1, `DummyVecEnv` is usually faster. Default: False
-    :param wrapper: (gym.Wrapper) Additional wrapper to use on the environment
+    :param monitor_path: (str) Path to a folder where the monitor files will be saved.
+        If None, no file will be written, however, the env will still be wrapped
+        in a Monitor wrapper to provide additional information about training.
+    :param wrapper_class: (gym.Wrapper) Additional wrapper to use on the environment
     :param env_kwargs: (dict) Optional keyword argument to pass to the env constructor
     :return: (VecEnv) The wrapped environment
     """
@@ -41,8 +44,8 @@ def make_vec_env(env_id, n_envs=1, seed=None, start_index=0,
             else:
                 env = env_id(**env_kwargs)
             if seed is not None:
-                env.seed(seed)
-                env.action_space.seed(seed)
+                env.seed(seed + rank)
+                env.action_space.seed(seed + rank)
             # Wrap the env in a Monitor wrapper
             # to have additional training information
             monitor_path = os.path.join(monitor_path, str(rank)) if monitor_path is not None else None

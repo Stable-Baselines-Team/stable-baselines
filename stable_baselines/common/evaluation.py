@@ -2,7 +2,8 @@ import numpy as np
 
 
 def evaluate_policy(model, env, n_eval_episodes=10, deterministic=True,
-                    render=False, callback=None, reward_threshold=None):
+                    render=False, callback=None, reward_threshold=None,
+                    return_episode_rewards=False):
     """
     Runs policy for n episodes and returns average reward.
     This is made to work only with one env.
@@ -15,7 +16,10 @@ def evaluate_policy(model, env, n_eval_episodes=10, deterministic=True,
     :param callback: (callable) callback function to do additional checks
     :param reward_threshold: (float) Minimum expected reward per episode,
         this will raise an error if the performance is not met
+    :param return_episode_rewards: I(bool) If True, a list of reward per episode
+        will be returned instead of the mean.
     :return: (float, int) Mean reward per episode, total number of steps
+        returns ([float], int) when `return_episode_rewards` is True
     """
     episode_rewards, n_steps = [], 0
     for _ in range(n_eval_episodes):
@@ -36,4 +40,6 @@ def evaluate_policy(model, env, n_eval_episodes=10, deterministic=True,
     if reward_threshold is not None:
         assert mean_reward > reward_threshold, 'Mean reward below threshold: '\
                                          '{:.2f} < {:.2f}'.format(mean_reward, reward_threshold)
+    if return_episode_rewards:
+        return episode_rewards, n_steps
     return mean_reward, n_steps
