@@ -57,7 +57,7 @@ def test_model_manipulation(request, model_class, storage_method, store_format):
         env = DummyVecEnv([lambda: IdentityEnv(10)])
 
         # create and train
-        model = model_class(policy="MlpPolicy", env=env)
+        model = model_class(policy="MlpPolicy", env=env, seed=0)
         model.learn(total_timesteps=10000)
 
         env.envs[0].action_space.seed(0)
