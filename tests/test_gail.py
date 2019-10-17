@@ -39,7 +39,6 @@ def test_gail(expert_env):
     model.learn(1000)
 
     evaluate_policy(model, env, n_eval_episodes=5)
-    obs = env.reset()
     del dataset, model
 
 @pytest.mark.parametrize("generate_env", [

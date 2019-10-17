@@ -35,12 +35,12 @@ def test_evaluate_policy():
     n_steps_per_episode, n_eval_episodes = 200, 2
     model.n_callback_calls = 0
 
-    def dummy_callback(locals_, globals_):
+    def dummy_callback(locals_, _globals):
         model.n_callback_calls += 1
 
-    mean_reward, n_steps = evaluate_policy(model, model.get_env(), n_eval_episodes, deterministic=True,
-                                           render=False, callback=dummy_callback, reward_threshold=None,
-                                           return_episode_rewards=False)
+    _, n_steps = evaluate_policy(model, model.get_env(), n_eval_episodes, deterministic=True,
+                                 render=False, callback=dummy_callback, reward_threshold=None,
+                                 return_episode_rewards=False)
     assert n_steps == n_steps_per_episode * n_eval_episodes
     assert n_steps == model.n_callback_calls
 
