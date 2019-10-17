@@ -48,11 +48,11 @@ def make_vec_env(env_id, n_envs=1, seed=None, start_index=0,
                 env.action_space.seed(seed + rank)
             # Wrap the env in a Monitor wrapper
             # to have additional training information
-            monitor_path = os.path.join(monitor_path, str(rank)) if monitor_path is not None else None
+            monitor_path_ = os.path.join(monitor_path, str(rank)) if monitor_path is not None else None
             # Create the monitor folder if needed
-            if monitor_path is not None:
+            if monitor_path_ is not None:
                 os.makedirs(log_dir, exist_ok=True)
-            env = Monitor(env, filename=monitor_path)
+            env = Monitor(env, filename=monitor_path_)
             # Optionally, wrap the environment with the provided wrapper
             if wrapper_class is not None:
                 env = wrapper_class(env)
