@@ -36,7 +36,7 @@ def test_evaluate_policy():
     model.n_callback_calls = 0
 
     def dummy_callback(locals_, _globals):
-        model.n_callback_calls += 1
+        locals_['model'].n_callback_calls += 1
 
     _, n_steps = evaluate_policy(model, model.get_env(), n_eval_episodes, deterministic=True,
                                  render=False, callback=dummy_callback, reward_threshold=None,
