@@ -14,11 +14,13 @@ Breaking Changes:
 - The `seed` argument has been moved from `learn()` method to model constructor
   in order to have reproducible results
 - `allow_early_resets` of the `Monitor` wrapper now default to `True`
+- `make_atari_env` now returns a `DummyVecEnv` by default (instead of a `SubprocVecEnv`)
+  this usually improve performances.
 
 New Features:
 ^^^^^^^^^^^^^
 - Add `n_cpu_tf_sess` to model constructor to choose the number of threads used by Tensorflow
-- Environments are automatically wrap in a `DummyVecEnv` if needed when passing them to the model constructor
+- Environments are automatically wrapped in a `DummyVecEnv` if needed when passing them to the model constructor
 - Added `stable_baselines.common.make_vec_env` helper to simplify VecEnv creation
 - Added `stable_baselines.common.evaluation.evaluate_policy` helper to simplify model evaluation
 

@@ -32,7 +32,8 @@ def make_vec_env(env_id, n_envs=1, seed=None, start_index=0,
     :param monitor_path: (str) Path to a folder where the monitor files will be saved.
         If None, no file will be written, however, the env will still be wrapped
         in a Monitor wrapper to provide additional information about training.
-    :param wrapper_class: (gym.Wrapper) Additional wrapper to use on the environment
+    :param wrapper_class: (gym.Wrapper or callable) Additional wrapper to use on the environment.
+        This can also be a function with single argument that wraps the environment in many things.
     :param env_kwargs: (dict) Optional keyword argument to pass to the env constructor
     :return: (VecEnv) The wrapped environment
     """
@@ -71,9 +72,9 @@ def make_vec_env(env_id, n_envs=1, seed=None, start_index=0,
 
 def make_atari_env(env_id, num_env, seed, wrapper_kwargs=None,
                    start_index=0, allow_early_resets=True,
-                   start_method=None, use_subprocess=True):
+                   start_method=None, use_subprocess=False):
     """
-    Create a wrapped, monitored SubprocVecEnv for Atari.
+    Create a wrapped, monitored VecEnv for Atari.
 
     :param env_id: (str) the environment ID
     :param num_env: (int) the number of environment you wish to have in subprocesses
@@ -84,7 +85,7 @@ def make_atari_env(env_id, num_env, seed, wrapper_kwargs=None,
     :param start_method: (str) method used to start the subprocesses.
         See SubprocVecEnv doc for more information
     :param use_subprocess: (bool) Whether to use `SubprocVecEnv` or `DummyVecEnv` when
-        `num_env` > 1, `DummyVecEnv` is usually faster. Default: True
+        `num_env` > 1, `DummyVecEnv` is usually faster. Default: False
     :return: (VecEnv) The atari environment
     """
     if wrapper_kwargs is None:

@@ -12,11 +12,12 @@ def evaluate_policy(model, env, n_eval_episodes=10, deterministic=True,
     :param env: (gym.Env)
     :param n_eval_episodes: (int) Number of episode to evalute the agent
     :param deterministic: (bool) Whether to use deterministic or not actions
-    :param render: (bool) Whether to render or not the environement
-    :param callback: (callable) callback function to do additional checks
+    :param render: (bool) Whether to render the environement or not
+    :param callback: (callable) callback function to do additional checks,
+        called after each step.
     :param reward_threshold: (float) Minimum expected reward per episode,
         this will raise an error if the performance is not met
-    :param return_episode_rewards: I(bool) If True, a list of reward per episode
+    :param return_episode_rewards: (bool) If True, a list of reward per episode
         will be returned instead of the mean.
     :return: (float, int) Mean reward per episode, total number of steps
         returns ([float], int) when `return_episode_rewards` is True

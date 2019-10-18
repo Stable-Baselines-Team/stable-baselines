@@ -44,7 +44,7 @@ Example
   import gym
 
   from stable_baselines.common.policies import MlpPolicy, MlpLstmPolicy, MlpLnLstmPolicy
-    from stable_baselines.common import make_vec_env
+  from stable_baselines.common import make_vec_env
   from stable_baselines import ACKTR
 
   # multiprocess environment
