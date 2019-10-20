@@ -47,6 +47,7 @@ Documentation:
 - Remove `DummyVecEnv` creation when not needed
 - Added `make_vec_env` to the examples to simplify VecEnv creation
 - Add QuaRL project (@srivatsankrishnan)
+- Add Pwnagotchi project (@evilsocket)
 
 Release 2.8.0 (2019-09-29)
 --------------------------
@@ -231,7 +232,6 @@ Documentation:
 - added guide for managing ``NaN`` and ``inf``
 - updated ven_env doc
 - misc doc updates
-
 
 Release 2.5.1 (2019-05-04)
 --------------------------
@@ -527,4 +527,4 @@ In random order...
 Thanks to @bjmuld @iambenzo @iandanforth @r7vme @brendenpetersen @huvar @abhiskk @JohannesAck
 @EliasHasle @mrakgr @Bleyddyn @antoine-galataud @junhyeokahn @AdamGleave @keshaviyengar @tperol
 @XMaster96 @kantneel @Pastafarianist @GerardMaggiolino @PatrickWalter214 @yutingsz @sc420 @Aaahh @billtubbs
-@Miffyli @dwiel @miguelrass @qxcv @jaberkow @eavelardev @ruifeng96150 @pedrohbtp @srivatsankrishnan
+@Miffyli @dwiel @miguelrass @qxcv @jaberkow @eavelardev @ruifeng96150 @pedrohbtp @srivatsankrishnan @evilsocket 
