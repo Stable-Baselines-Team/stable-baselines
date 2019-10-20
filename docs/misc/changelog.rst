@@ -46,6 +46,7 @@ Documentation:
 - Remove unnecessary steps required for Windows installation.
 - Remove `DummyVecEnv` creation when not needed
 - Added `make_vec_env` to the examples to simplify VecEnv creation
+- Add QuaRL project (@srivatsankrishnan)
 
 Release 2.8.0 (2019-09-29)
 --------------------------
@@ -526,4 +527,4 @@ In random order...
 Thanks to @bjmuld @iambenzo @iandanforth @r7vme @brendenpetersen @huvar @abhiskk @JohannesAck
 @EliasHasle @mrakgr @Bleyddyn @antoine-galataud @junhyeokahn @AdamGleave @keshaviyengar @tperol
 @XMaster96 @kantneel @Pastafarianist @GerardMaggiolino @PatrickWalter214 @yutingsz @sc420 @Aaahh @billtubbs
-@Miffyli @dwiel @miguelrass @qxcv @jaberkow @eavelardev @ruifeng96150 @pedrohbtp
+@Miffyli @dwiel @miguelrass @qxcv @jaberkow @eavelardev @ruifeng96150 @pedrohbtp @srivatsankrishnan
