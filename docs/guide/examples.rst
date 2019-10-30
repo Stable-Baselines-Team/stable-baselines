@@ -117,23 +117,24 @@ Multiprocessing: Unleashing the Power of Vectorized Environments
       set_global_seeds(seed)
       return _init
 
-  env_id = "CartPole-v1"
-  num_cpu = 4  # Number of processes to use
-  # Create the vectorized environment
-  env = SubprocVecEnv([make_env(env_id, i) for i in range(num_cpu)])
+  if __name__ == '__main__':
+      env_id = "CartPole-v1"
+      num_cpu = 4  # Number of processes to use
+      # Create the vectorized environment
+      env = SubprocVecEnv([make_env(env_id, i) for i in range(num_cpu)])
 
-  # Stable Baselines provide you with make_vec_env() helper
-  # which does exactly the previous steps for you:
-  # env = make_vec_env(env_id, n_envs=num_cpu, seed=0)
+      # Stable Baselines provide you with make_vec_env() helper
+      # which does exactly the previous steps for you:
+      # env = make_vec_env(env_id, n_envs=num_cpu, seed=0)
 
-  model = ACKTR(MlpPolicy, env, verbose=1)
-  model.learn(total_timesteps=25000)
+      model = ACKTR(MlpPolicy, env, verbose=1)
+      model.learn(total_timesteps=25000)
 
-  obs = env.reset()
-  for _ in range(1000):
-      action, _states = model.predict(obs)
-      obs, rewards, dones, info = env.step(action)
-      env.render()
+      obs = env.reset()
+      for _ in range(1000):
+          action, _states = model.predict(obs)
+          obs, rewards, dones, info = env.step(action)
+          env.render()
 
 
 
