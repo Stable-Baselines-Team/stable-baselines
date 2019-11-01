@@ -39,6 +39,7 @@ Others:
 ^^^^^^^
 - Add upper bound for Tensorflow version (<2.0.0).
 - Refactored test to remove duplicated code
+- Add pull request template
 
 Documentation:
 ^^^^^^^^^^^^^^
@@ -50,6 +51,7 @@ Documentation:
 - Add QuaRL project (@srivatsankrishnan)
 - Add Pwnagotchi project (@evilsocket)
 - Fix multiprocessing example (@rusu24edward)
+- Fix `result_plotter` example
 
 Release 2.8.0 (2019-09-29)
 --------------------------
