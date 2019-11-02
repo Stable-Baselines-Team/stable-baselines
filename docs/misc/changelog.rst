@@ -23,6 +23,7 @@ New Features:
 - Environments are automatically wrapped in a `DummyVecEnv` if needed when passing them to the model constructor
 - Added `stable_baselines.common.make_vec_env` helper to simplify VecEnv creation
 - Added `stable_baselines.common.evaluation.evaluate_policy` helper to simplify model evaluation
+- `VecNormalize` now supports being pickled and unpickled.
 
 Bug Fixes:
 ^^^^^^^^^^
@@ -34,6 +35,7 @@ Deprecations:
 ^^^^^^^^^^^^^
 - `nprocs` (ACKTR) and `num_procs` (ACER) are deprecated in favor of `n_cpu_tf_sess` which is now common
   to all algorithms
+- `VecNormalize`: `load_running_average` and `save_running_average` are deprecated in favour of using pickle.
 
 Others:
 ^^^^^^^
