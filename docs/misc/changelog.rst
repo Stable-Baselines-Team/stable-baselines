@@ -5,6 +5,30 @@ Changelog
 
 For download links, please look at `Github release page <https://github.com/hill-a/stable-baselines/releases>`_.
 
+Pre-Release 3.0.0a0 (WIP)
+--------------------------
+
+**TensorFlow 2 Version**
+
+Breaking Changes:
+^^^^^^^^^^^^^^^^^
+- Drop support for tensorflow 1.x
+
+New Features:
+^^^^^^^^^^^^^
+
+Bug Fixes:
+^^^^^^^^^^
+
+Deprecations:
+^^^^^^^^^^^^^
+
+Others:
+^^^^^^^
+
+Documentation:
+^^^^^^^^^^^^^^
+
 
 Pre-Release 2.9.0a0 (WIP)
 --------------------------
