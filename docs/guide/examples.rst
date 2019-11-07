@@ -163,38 +163,38 @@ If your callback returns False, training is aborted early.
   from stable_baselines.results_plotter import load_results, ts2xy
   from stable_baselines import DDPG
   from stable_baselines.ddpg import AdaptiveParamNoiseSpec
+  from stable_baselines import results_plotter
 
 
   best_mean_reward, n_steps = -np.inf, 0
 
   def callback(_locals, _globals):
-    """
-    Callback called at each step (for DQN an others) or after n steps (see ACER or PPO2)
-    :param _locals: (dict)
-    :param _globals: (dict)
-    """
-    global n_steps, best_mean_reward
-    # Print stats every 1000 calls
-    if (n_steps + 1) % 1000 == 0:
-        # Evaluate policy training performance
-        x, y = ts2xy(load_results(log_dir), 'timesteps')
-        if len(x) > 0:
-            mean_reward = np.mean(y[-100:])
-            print(x[-1], 'timesteps')
-            print("Best mean reward: {:.2f} - Last mean reward per episode: {:.2f}".format(best_mean_reward, mean_reward))
+      """
+      Callback called at each step (for DQN an others) or after n steps (see ACER or PPO2)
+      :param _locals: (dict)
+      :param _globals: (dict)
+      """
+      global n_steps, best_mean_reward
+      # Print stats every 1000 calls
+      if (n_steps + 1) % 1000 == 0:
+          # Evaluate policy training performance
+          x, y = ts2xy(load_results(log_dir), 'timesteps')
+          if len(x) > 0:
+              mean_reward = np.mean(y[-100:])
+              print(x[-1], 'timesteps')
+              print("Best mean reward: {:.2f} - Last mean reward per episode: {:.2f}".format(best_mean_reward, mean_reward))
 
-            # New best model, you could save the agent here
-            if mean_reward > best_mean_reward:
-                best_mean_reward = mean_reward
-                # Example for saving best model
-                print("Saving new best model")
-                _locals['self'].save(log_dir + 'best_model.pkl')
-    n_steps += 1
-    return True
-
+              # New best model, you could save the agent here
+              if mean_reward > best_mean_reward:
+                  best_mean_reward = mean_reward
+                  # Example for saving best model
+                  print("Saving new best model")
+                  _locals['self'].save(log_dir + 'best_model.pkl')
+      n_steps += 1
+      return True
 
   # Create log dir
-  log_dir = "/tmp/gym/"
+  log_dir = "tmp/"
   os.makedirs(log_dir, exist_ok=True)
 
   # Create and wrap the environment
@@ -206,7 +206,11 @@ If your callback returns False, training is aborted early.
   # Because we use parameter noise, we should use a MlpPolicy with layer normalization
   model = DDPG(LnMlpPolicy, env, param_noise=param_noise, verbose=0)
   # Train the agent
-  model.learn(total_timesteps=int(1e5), callback=callback)
+  time_steps = 1e5
+  model.learn(total_timesteps=int(time_steps), callback=callback)
+
+  results_plotter.plot_results([log_dir], time_steps, results_plotter.X_TIMESTEPS, "DDPG LunarLander")
+  plt.show()
 
 
 Atari Games
