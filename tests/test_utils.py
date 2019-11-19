@@ -37,9 +37,9 @@ def test_custom_vec_env():
     """
     Stand alone test for a special case (passing a custom VecEnv class) to avoid doubling the number of tests.
     """
-    MONITOR_DIR = 'logs/test_make_vec_env/'
+    monitor_dir = 'logs/test_make_vec_env/'
     env = make_vec_env('CartPole-v1', n_envs=1, use_subprocess=True,
-                       monitor_dir=MONITOR_DIR, seed=0,
+                       monitor_dir=monitor_dir, seed=0,
                        vec_env_cls=DummyVecEnv, vec_env_kwargs={})
 
 
@@ -49,7 +49,7 @@ def test_custom_vec_env():
     assert isinstance(env, DummyVecEnv)
     assert os.path.isdir('logs/test_make_vec_env/')
     # Cleanup folder
-    shutil.rmtree(MONITOR_DIR)
+    shutil.rmtree(monitor_dir)
 
     # This should fail because DummyVecEnv does not have any keyword argument
     with pytest.raises(TypeError):
