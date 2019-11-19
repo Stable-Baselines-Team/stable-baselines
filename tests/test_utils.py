@@ -1,3 +1,6 @@
+import os
+import shutil
+
 import pytest
 import gym
 
@@ -9,16 +12,16 @@ from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
 
 
 @pytest.mark.parametrize("env_id", ['CartPole-v1', lambda: gym.make('CartPole-v1')])
-@pytest.mark.parametrize("n_envs", [1, 1])
+@pytest.mark.parametrize("n_envs", [1, 2])
 @pytest.mark.parametrize("use_subprocess", [False, True])
 @pytest.mark.parametrize("wrapper_class", [None, gym.wrappers.TimeLimit])
 def test_make_vec_env(env_id, n_envs, wrapper_class, use_subprocess):
     env = make_vec_env(env_id, n_envs, use_subprocess=use_subprocess,
-                       wrapper_class=wrapper_class, seed=0)
+                       wrapper_class=wrapper_class, monitor_dir=None, seed=0)
 
     assert env.num_envs == n_envs
 
-    if n_envs == 1 or not use_subprocess:
+    if not use_subprocess:
         assert isinstance(env, DummyVecEnv)
         if wrapper_class is not None:
             assert isinstance(env.envs[0], wrapper_class)
@@ -28,6 +31,29 @@ def test_make_vec_env(env_id, n_envs, wrapper_class, use_subprocess):
         assert isinstance(env, SubprocVecEnv)
     # Kill subprocesses
     env.close()
+
+
+def test_custom_vec_env():
+    """
+    Stand alone test for a special case (passing a custom VecEnv class) to avoid doubling the number of tests.
+    """
+    MONITOR_DIR = 'logs/test_make_vec_env/'
+    env = make_vec_env('CartPole-v1', n_envs=1, use_subprocess=True,
+                       monitor_dir=MONITOR_DIR, seed=0,
+                       vec_env_cls=DummyVecEnv, vec_env_kwargs={})
+
+
+    assert env.num_envs == 1
+    # Even though we passed `use_subprocess=True`
+    # because `vec_env_cls` is not None, `use_subprocess` is ignored
+    assert isinstance(env, DummyVecEnv)
+    assert os.path.isdir('logs/test_make_vec_env/')
+    # Cleanup folder
+    shutil.rmtree(MONITOR_DIR)
+
+    # This should fail because DummyVecEnv does not have any keyword argument
+    with pytest.raises(TypeError):
+        make_vec_env('CartPole-v1', n_envs=1, vec_env_kwargs={'dummy': False})
 
 
 def test_evaluate_policy():

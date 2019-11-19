@@ -3,6 +3,7 @@ Helpers for scripts like run_atari.py.
 """
 
 import os
+import warnings
 
 import gym
 from gym.wrappers import FlattenDictWrapper
@@ -17,31 +18,40 @@ from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
 
 def make_vec_env(env_id, n_envs=1, seed=None, start_index=0,
                  use_subprocess=False, start_method=None,
-                 monitor_path=None, wrapper_class=None, env_kwargs=None):
+                 monitor_dir=None, wrapper_class=None,
+                 env_kwargs=None, vec_env_cls=None, vec_env_kwargs=None):
     """
     Create a wrapped, monitored VecEnv.
 
-    :param env_id: (str or gym.Env) the environment ID or the environment class
-    :param n_envs: (int) the number of environment you wish to have in parallel
-    :param seed: (int) the inital seed for random number generator
+    :param env_id: (str or Type[gym.Env]) the environment ID or the environment class
+    :param n_envs: (int) the number of environments you wish to have in parallel
+    :param seed: (int) the inital seed for the random number generator
     :param start_index: (int) start rank index
     :param start_method: (str) method used to start the subprocesses.
         See SubprocVecEnv doc for more information
-    :param use_subprocess: (bool) Whether to use `SubprocVecEnv` or `DummyVecEnv` when
-        `n_envs` > 1, `DummyVecEnv` is usually faster. Default: False
-    :param monitor_path: (str) Path to a folder where the monitor files will be saved.
+    :param use_subprocess: (bool) Whether to use `SubprocVecEnv` or `DummyVecEnv`,
+        `DummyVecEnv` is usually faster. Default: False.
+        Note that this parameter is ignored when a custom `VecEnv` class is passed,
+         i.e., when `vec_env_cls` is not None.
+    :param monitor_dir: (str) Path to a folder where the monitor files will be saved.
         If None, no file will be written, however, the env will still be wrapped
         in a Monitor wrapper to provide additional information about training.
     :param wrapper_class: (gym.Wrapper or callable) Additional wrapper to use on the environment.
         This can also be a function with single argument that wraps the environment in many things.
     :param env_kwargs: (dict) Optional keyword argument to pass to the env constructor
+    :param vec_env_cls: (Type[VecEnv]) A custom `VecEnv` class constructor. Default: None.
+    :param vec_env_kwargs: (dict) Keyword arguments to pass to the `VecEnv` class constructor.
     :return: (VecEnv) The wrapped environment
     """
     env_kwargs = {} if env_kwargs is None else env_kwargs
+    vec_env_kwargs = {} if vec_env_kwargs is None else vec_env_kwargs
+
     def make_env(rank):
         def _init():
             if isinstance(env_id, str):
                 env = gym.make(env_id)
+                if len(env_kwargs) > 0:
+                    warnings.warn("No environment class was passed (only an env ID) so `env_kwargs` will be ignored")
             else:
                 env = env_id(**env_kwargs)
             if seed is not None:
@@ -49,25 +59,27 @@ def make_vec_env(env_id, n_envs=1, seed=None, start_index=0,
                 env.action_space.seed(seed + rank)
             # Wrap the env in a Monitor wrapper
             # to have additional training information
-            monitor_path_ = os.path.join(monitor_path, str(rank)) if monitor_path is not None else None
+            monitor_path = os.path.join(monitor_dir, str(rank)) if monitor_dir is not None else None
             # Create the monitor folder if needed
-            if monitor_path_ is not None:
-                os.makedirs(log_dir, exist_ok=True)
-            env = Monitor(env, filename=monitor_path_)
+            if monitor_path is not None:
+                os.makedirs(monitor_dir, exist_ok=True)
+            env = Monitor(env, filename=monitor_path)
             # Optionally, wrap the environment with the provided wrapper
             if wrapper_class is not None:
                 env = wrapper_class(env)
             return env
         return _init
 
-    if seed is not None:
-        set_global_seeds(seed)
+    # No custom VecEnv is passed
+    if vec_env_cls is None:
+        if use_subprocess:
+            vec_env_cls = SubprocVecEnv
+            vec_env_kwargs['start_method'] = start_method
+        else:
+            # Default: use a DummyVecEnv
+            vec_env_cls = DummyVecEnv
 
-    if n_envs == 1 or not use_subprocess:
-        return DummyVecEnv([make_env(i + start_index) for i in range(n_envs)])
-
-    return SubprocVecEnv([make_env(i + start_index) for i in range(n_envs)],
-                         start_method=start_method)
+    return vec_env_cls([make_env(i + start_index) for i in range(n_envs)], **vec_env_kwargs)
 
 
 def make_atari_env(env_id, num_env, seed, wrapper_kwargs=None,

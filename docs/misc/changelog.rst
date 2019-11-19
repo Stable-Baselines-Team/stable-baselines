@@ -15,7 +15,7 @@ Breaking Changes:
   in order to have reproducible results
 - `allow_early_resets` of the `Monitor` wrapper now default to `True`
 - `make_atari_env` now returns a `DummyVecEnv` by default (instead of a `SubprocVecEnv`)
-  this usually improve performances.
+  this usually improves performance.
 
 New Features:
 ^^^^^^^^^^^^^

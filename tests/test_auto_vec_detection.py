@@ -19,9 +19,6 @@ def check_shape(make_env, model_class, shape_1, shape_2):
             assert np.array(locals_['action']).shape == expected_shape
         evaluate_policy(model, env, n_eval_episodes=5, callback=callback)
 
-    # Free memory
-    del model, env0, env1
-
 
 @pytest.mark.slow
 @pytest.mark.parametrize("model_class", [A2C, ACER, ACKTR, DQN, PPO1, PPO2, TRPO])

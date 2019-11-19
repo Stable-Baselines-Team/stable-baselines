@@ -123,7 +123,7 @@ Multiprocessing: Unleashing the Power of Vectorized Environments
       # Create the vectorized environment
       env = SubprocVecEnv([make_env(env_id, i) for i in range(num_cpu)])
 
-      # Stable Baselines provide you with make_vec_env() helper
+      # Stable Baselines provides you with make_vec_env() helper
       # which does exactly the previous steps for you:
       # env = make_vec_env(env_id, n_envs=num_cpu, seed=0)
 
