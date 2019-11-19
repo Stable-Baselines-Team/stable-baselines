@@ -24,6 +24,7 @@ New Features:
 - Added `stable_baselines.common.make_vec_env` helper to simplify VecEnv creation
 - Added `stable_baselines.common.evaluation.evaluate_policy` helper to simplify model evaluation
 - `VecNormalize` now supports being pickled and unpickled.
+- Add parameter `exploration_initial_eps` to DQN. (@jdossgollin)
 
 Bug Fixes:
 ^^^^^^^^^^
@@ -535,4 +536,4 @@ Thanks to @bjmuld @iambenzo @iandanforth @r7vme @brendenpetersen @huvar @abhiskk
 @EliasHasle @mrakgr @Bleyddyn @antoine-galataud @junhyeokahn @AdamGleave @keshaviyengar @tperol
 @XMaster96 @kantneel @Pastafarianist @GerardMaggiolino @PatrickWalter214 @yutingsz @sc420 @Aaahh @billtubbs
 @Miffyli @dwiel @miguelrass @qxcv @jaberkow @eavelardev @ruifeng96150 @pedrohbtp @srivatsankrishnan @evilsocket
-@rusu24edward @MarvineGothic
+@MarvineGothic @jdossgollin @rusu24edward
