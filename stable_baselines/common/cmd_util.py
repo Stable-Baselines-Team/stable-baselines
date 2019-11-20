@@ -32,7 +32,7 @@ def make_vec_env(env_id, n_envs=1, seed=None, start_index=0,
     :param use_subprocess: (bool) Whether to use `SubprocVecEnv` or `DummyVecEnv`,
         `DummyVecEnv` is usually faster. Default: False.
         Note that this parameter is ignored when a custom `VecEnv` class is passed,
-         i.e., when `vec_env_cls` is not None.
+        i.e., when `vec_env_cls` is not None.
     :param monitor_dir: (str) Path to a folder where the monitor files will be saved.
         If None, no file will be written, however, the env will still be wrapped
         in a Monitor wrapper to provide additional information about training.
