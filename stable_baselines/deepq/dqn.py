@@ -4,10 +4,11 @@ import tensorflow as tf
 import numpy as np
 import gym
 
-from stable_baselines import logger, deepq
+from stable_baselines import logger
 from stable_baselines.common import tf_util, OffPolicyRLModel, SetVerbosity, TensorboardWriter
 from stable_baselines.common.vec_env import VecEnv
 from stable_baselines.common.schedules import LinearSchedule
+from stable_baselines.deepq.build_graph import build_train
 from stable_baselines.deepq.replay_buffer import ReplayBuffer, PrioritizedReplayBuffer
 from stable_baselines.deepq.policies import DQNPolicy
 from stable_baselines.a2c.utils import total_episode_reward_logger
@@ -129,7 +130,7 @@ class DQN(OffPolicyRLModel):
 
                 optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
 
-                self.act, self._train_step, self.update_target, self.step_model = deepq.build_train(
+                self.act, self._train_step, self.update_target, self.step_model = build_train(
                     q_func=partial(self.policy, **self.policy_kwargs),
                     ob_space=self.observation_space,
                     ac_space=self.action_space,
@@ -243,13 +244,17 @@ class DQN(OffPolicyRLModel):
                 if can_sample and self.num_timesteps > self.learning_starts \
                     and self.num_timesteps % self.train_freq == 0:
                     # Minimize the error in Bellman's equation on a batch sampled from replay buffer.
+                    # pytype:disable=bad-unpacking
                     if self.prioritized_replay:
+                        assert self.beta_schedule is not None, \
+                               "BUG: should be LinearSchedule when self.prioritized_replay True"
                         experience = self.replay_buffer.sample(self.batch_size,
                                                                beta=self.beta_schedule.value(self.num_timesteps))
                         (obses_t, actions, rewards, obses_tp1, dones, weights, batch_idxes) = experience
                     else:
                         obses_t, actions, rewards, obses_tp1, dones = self.replay_buffer.sample(self.batch_size)
                         weights, batch_idxes = np.ones_like(rewards), None
+                    # pytype:enable=bad-unpacking
 
                     if writer is not None:
                         # run loss backprop with summary, but once every 100 steps save the metadata
@@ -271,6 +276,7 @@ class DQN(OffPolicyRLModel):
 
                     if self.prioritized_replay:
                         new_priorities = np.abs(td_errors) + self.prioritized_replay_eps
+                        assert isinstance(self.replay_buffer, PrioritizedReplayBuffer)
                         self.replay_buffer.update_priorities(batch_idxes, new_priorities)
 
                 if can_sample and self.num_timesteps > self.learning_starts and \

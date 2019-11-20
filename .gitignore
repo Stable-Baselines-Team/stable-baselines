@@ -4,6 +4,7 @@
 *.py~
 *.bak
 .pytest_cache
+.pytype
 .DS_Store
 .idea
 .coverage
@@ -19,12 +20,10 @@ keys/
 
 # Virtualenv
 /env
-
+/venv
 
 *.sublime-project
 *.sublime-workspace
-
-.idea
 
 logs/
 

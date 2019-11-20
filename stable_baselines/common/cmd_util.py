@@ -5,11 +5,10 @@ Helpers for scripts like run_atari.py.
 import os
 
 import gym
-from gym.wrappers import FlattenDictWrapper
 
 from stable_baselines import logger
 from stable_baselines.bench import Monitor
-from stable_baselines.common import set_global_seeds
+from stable_baselines.common.misc_util import set_global_seeds
 from stable_baselines.common.atari_wrappers import make_atari, wrap_deepmind
 from stable_baselines.common.misc_util import mpi_rank_or_zero
 from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
@@ -62,7 +61,7 @@ def make_mujoco_env(env_id, seed, allow_early_resets=True):
     """
     set_global_seeds(seed + 10000 * mpi_rank_or_zero())
     env = gym.make(env_id)
-    env = Monitor(env, os.path.join(logger.get_dir(), str(rank)), allow_early_resets=allow_early_resets)
+    env = Monitor(env, os.path.join(logger.get_dir(), '0'), allow_early_resets=allow_early_resets)
     env.seed(seed)
     return env
 
@@ -79,7 +78,14 @@ def make_robotics_env(env_id, seed, rank=0, allow_early_resets=True):
     """
     set_global_seeds(seed)
     env = gym.make(env_id)
-    env = FlattenDictWrapper(env, ['observation', 'desired_goal'])
+    keys = ['observation', 'desired_goal']
+    # TODO: remove try-except once most users are running modern Gym
+    try:  # for modern Gym (>=0.15.4)
+        from gym.wrappers import FilterObservation, FlattenObservation
+        env = FlattenObservation(FilterObservation(env, keys))
+    except ImportError:  # for older gym (<=0.15.3)
+        from gym.wrappers import FlattenDictWrapper  # pytype:disable=import-error
+        env = FlattenDictWrapper(env, keys)
     env = Monitor(
         env, logger.get_dir() and os.path.join(logger.get_dir(), str(rank)),
         info_keywords=('is_success',), allow_early_resets=allow_early_resets)
