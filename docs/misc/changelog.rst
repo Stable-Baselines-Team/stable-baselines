@@ -25,12 +25,15 @@ New Features:
 - Added `stable_baselines.common.evaluation.evaluate_policy` helper to simplify model evaluation
 - `VecNormalize` now supports being pickled and unpickled.
 - Add parameter `exploration_initial_eps` to DQN. (@jdossgollin)
+- Add type checking and PEP 561 compliance.
+  Note: most functions are still not annotated, this will be a gradual process.
 
 Bug Fixes:
 ^^^^^^^^^^
 - Fix seeding, so it is now possible to have deterministic results on cpu
 - Fix a bug in DDPG where `predict` method with `deterministic=False` would fail
 - Fix a bug in TRPO: mean_losses was not initialized causing the logger to crash when there was no gradients (@MarvineGothic)
+- Fix a bug in `cmd_util` from API change in recent Gym versions
 
 Deprecations:
 ^^^^^^^^^^^^^

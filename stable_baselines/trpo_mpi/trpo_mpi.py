@@ -388,7 +388,6 @@ class TRPO(ActorCriticRLModel):
                             surrbefore = lossbefore[0]
                             stepsize = 1.0
                             thbefore = self.get_flat()
-                            thnew = None
                             for _ in range(10):
                                 thnew = thbefore + fullstep * stepsize
                                 self.set_from_flat(thnew)
