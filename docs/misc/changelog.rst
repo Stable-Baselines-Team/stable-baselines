@@ -42,12 +42,16 @@ New Features:
 ^^^^^^^^^^^^^
 - Add `n_cpu_tf_sess` to model constructor to choose the number of threads used by Tensorflow
 - `VecNormalize` now supports being pickled and unpickled.
+- Add parameter `exploration_initial_eps` to DQN. (@jdossgollin)
+- Add type checking and PEP 561 compliance.
+  Note: most functions are still not annotated, this will be a gradual process.
 
 Bug Fixes:
 ^^^^^^^^^^
 - Fix seeding, so it is now possible to have deterministic results on cpu
 - Fix a bug in DDPG where `predict` method with `deterministic=False` would fail
 - Fix a bug in TRPO: mean_losses was not initialized causing the logger to crash when there was no gradients (@MarvineGothic)
+- Fix a bug in `cmd_util` from API change in recent Gym versions
 
 Deprecations:
 ^^^^^^^^^^^^^
@@ -69,6 +73,7 @@ Documentation:
 - Add QuaRL project (@srivatsankrishnan)
 - Add Pwnagotchi project (@evilsocket)
 - Fix `result_plotter` example
+- Fix typo in algos.rst, "containes" to "contains" (@SyllogismRXS)
 
 Release 2.8.0 (2019-09-29)
 --------------------------
@@ -549,4 +554,4 @@ Thanks to @bjmuld @iambenzo @iandanforth @r7vme @brendenpetersen @huvar @abhiskk
 @EliasHasle @mrakgr @Bleyddyn @antoine-galataud @junhyeokahn @AdamGleave @keshaviyengar @tperol
 @XMaster96 @kantneel @Pastafarianist @GerardMaggiolino @PatrickWalter214 @yutingsz @sc420 @Aaahh @billtubbs
 @Miffyli @dwiel @miguelrass @qxcv @jaberkow @eavelardev @ruifeng96150 @pedrohbtp @srivatsankrishnan @evilsocket
-@MarvineGothic
+@MarvineGothic @jdossgollin @SyllogismRXS
