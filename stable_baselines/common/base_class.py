@@ -70,7 +70,12 @@ class BaseRLModel(ABC):
                 if isinstance(env, VecEnv):
                     self.n_envs = env.num_envs
                 else:
-                    raise ValueError("Error: the model requires a vectorized environment, please use a VecEnv wrapper.")
+                    # The model requires a VecEnv
+                    # wrap it in a DummyVecEnv to avoid error
+                    self.env = DummyVecEnv([lambda: env])
+                    if self.verbose >= 1:
+                        print("Wrapping the env in a DummyVecEnv.")
+                    self.n_envs = 1
             else:
                 if isinstance(env, VecEnv):
                     if env.num_envs == 1:
