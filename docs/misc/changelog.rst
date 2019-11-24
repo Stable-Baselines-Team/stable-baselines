@@ -37,10 +37,16 @@ Breaking Changes:
 ^^^^^^^^^^^^^^^^^
 - The `seed` argument has been moved from `learn()` method to model constructor
   in order to have reproducible results
+- `allow_early_resets` of the `Monitor` wrapper now default to `True`
+- `make_atari_env` now returns a `DummyVecEnv` by default (instead of a `SubprocVecEnv`)
+  this usually improves performance.
 
 New Features:
 ^^^^^^^^^^^^^
 - Add `n_cpu_tf_sess` to model constructor to choose the number of threads used by Tensorflow
+- Environments are automatically wrapped in a `DummyVecEnv` if needed when passing them to the model constructor
+- Added `stable_baselines.common.make_vec_env` helper to simplify VecEnv creation
+- Added `stable_baselines.common.evaluation.evaluate_policy` helper to simplify model evaluation
 - `VecNormalize` now supports being pickled and unpickled.
 - Add parameter `exploration_initial_eps` to DQN. (@jdossgollin)
 - Add type checking and PEP 561 compliance.
@@ -62,6 +68,7 @@ Deprecations:
 Others:
 ^^^^^^^
 - Add upper bound for Tensorflow version (<2.0.0).
+- Refactored test to remove duplicated code
 - Add pull request template
 
 Documentation:
@@ -70,8 +77,11 @@ Documentation:
 - Add Snake Game AI project (@pedrohbtp)
 - Add note on the support Tensorflow versions.
 - Remove unnecessary steps required for Windows installation.
+- Remove `DummyVecEnv` creation when not needed
+- Added `make_vec_env` to the examples to simplify VecEnv creation
 - Add QuaRL project (@srivatsankrishnan)
 - Add Pwnagotchi project (@evilsocket)
+- Fix multiprocessing example (@rusu24edward)
 - Fix `result_plotter` example
 - Fix typo in algos.rst, "containes" to "contains" (@SyllogismRXS)
 
@@ -554,4 +564,4 @@ Thanks to @bjmuld @iambenzo @iandanforth @r7vme @brendenpetersen @huvar @abhiskk
 @EliasHasle @mrakgr @Bleyddyn @antoine-galataud @junhyeokahn @AdamGleave @keshaviyengar @tperol
 @XMaster96 @kantneel @Pastafarianist @GerardMaggiolino @PatrickWalter214 @yutingsz @sc420 @Aaahh @billtubbs
 @Miffyli @dwiel @miguelrass @qxcv @jaberkow @eavelardev @ruifeng96150 @pedrohbtp @srivatsankrishnan @evilsocket
-@MarvineGothic @jdossgollin @SyllogismRXS
+@MarvineGothic @jdossgollin @SyllogismRXS @rusu24edward
