@@ -48,6 +48,7 @@ Others:
 - Add upper bound for Tensorflow version (<2.0.0).
 - Refactored test to remove duplicated code
 - Add pull request template
+- Replaced redundant code in load_results (@jbulow)
 
 Documentation:
 ^^^^^^^^^^^^^^
@@ -62,6 +63,7 @@ Documentation:
 - Fix multiprocessing example (@rusu24edward)
 - Fix `result_plotter` example
 - Fix typo in algos.rst, "containes" to "contains" (@SyllogismRXS)
+- Fix outdated source documentation for load_results
 
 Release 2.8.0 (2019-09-29)
 --------------------------
@@ -542,4 +544,4 @@ Thanks to @bjmuld @iambenzo @iandanforth @r7vme @brendenpetersen @huvar @abhiskk
 @EliasHasle @mrakgr @Bleyddyn @antoine-galataud @junhyeokahn @AdamGleave @keshaviyengar @tperol
 @XMaster96 @kantneel @Pastafarianist @GerardMaggiolino @PatrickWalter214 @yutingsz @sc420 @Aaahh @billtubbs
 @Miffyli @dwiel @miguelrass @qxcv @jaberkow @eavelardev @ruifeng96150 @pedrohbtp @srivatsankrishnan @evilsocket
-@MarvineGothic @jdossgollin @SyllogismRXS @rusu24edward
+@MarvineGothic @jdossgollin @SyllogismRXS @rusu24edward @jbulow
