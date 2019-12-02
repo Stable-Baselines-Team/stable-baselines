@@ -16,6 +16,7 @@ Breaking Changes:
 - `allow_early_resets` of the `Monitor` wrapper now default to `True`
 - `make_atari_env` now returns a `DummyVecEnv` by default (instead of a `SubprocVecEnv`)
   this usually improves performance.
+- Fix inconsistency of sample type, so that mode/sample function returns tensor of tf.int64 in CategoricalProbabilityDistribution/MultiCategoricalProbabilityDistribution (@seheevic)
 
 New Features:
 ^^^^^^^^^^^^^
@@ -546,4 +547,4 @@ Thanks to @bjmuld @iambenzo @iandanforth @r7vme @brendenpetersen @huvar @abhiskk
 @EliasHasle @mrakgr @Bleyddyn @antoine-galataud @junhyeokahn @AdamGleave @keshaviyengar @tperol
 @XMaster96 @kantneel @Pastafarianist @GerardMaggiolino @PatrickWalter214 @yutingsz @sc420 @Aaahh @billtubbs
 @Miffyli @dwiel @miguelrass @qxcv @jaberkow @eavelardev @ruifeng96150 @pedrohbtp @srivatsankrishnan @evilsocket
-@MarvineGothic @jdossgollin @SyllogismRXS @rusu24edward @jbulow @Antymon
+@MarvineGothic @jdossgollin @SyllogismRXS @rusu24edward @jbulow @Antymon @seheevic
