@@ -34,9 +34,13 @@ That is to say, your environment must implement the following methods (and inher
 
     def step(self, action):
       ...
+      return observation, reward, done, info
     def reset(self):
       ...
-    def render(self, mode='human', close=False):
+      return observation  # reward, done, info can't be included
+    def render(self, mode='human'):
+      ...
+    def close (self):
       ...
 
 
