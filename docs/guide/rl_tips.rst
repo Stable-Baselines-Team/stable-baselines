@@ -33,7 +33,7 @@ bad trajectories.
 This factor, among others, explains that results in RL may vary from one run to another (i.e., when only the seed of the pseudo-random generator changes).
 For this reason, you should always do several runs to have quantitative results.
 
-Good results in RL are generally dependent on finding appropriate hyperparameters. Recent alogrithms (PPO, SAC, TD3) normally require little hyperparameter tuning,
+Good results in RL are generally dependent on finding appropriate hyperparameters. Recent algorithms (PPO, SAC, TD3) normally require little hyperparameter tuning,
 however, *don't expect the default ones to work* on any environment.
 
 Therefore, we *highly recommend you* to take a look at the `RL zoo <https://github.com/araffin/rl-baselines-zoo>`_ (or the original papers) for tuned hyperparameters.
@@ -93,7 +93,7 @@ or continuous actions (ex: go to a certain speed)?
 Some algorithms are only tailored for one or the other domain: `DQN` only supports discrete actions, where `SAC` is restricted to continuous actions.
 
 The second difference that will help you choose is whether you can parallelize your training or not, and how you can do it (with or without MPI?).
-If what matters is the wall clock training time, then you should lean towards `À2C` and its derivates (PPO, ACER, ACKTR, ...).
+If what matters is the wall clock training time, then you should lean towards `A2C` and its derivatives (PPO, ACER, ACKTR, ...).
 Take a look at the `Vectorized Environments <vec_envs.html>`_ to learn more about training with multiple workers.
 
 To sum it up:
@@ -146,7 +146,7 @@ If you can use MPI, then you can choose between PPO1, TRPO and DDPG.
 Goal Environment
 -----------------
 
-If your environment follows the `GoalEnv` interface (cf `HER <her.html>`_), then you should use
+If your environment follows the `GoalEnv` interface (cf `HER <../modules/her.html>`_), then you should use
 HER + (SAC/TD3/DDPG/DQN) depending on the action space.
 
 

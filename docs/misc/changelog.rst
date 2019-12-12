@@ -73,6 +73,8 @@ Documentation:
 - Update custom env documentation to reflect new gym API for the `close()` method (@justinkterry)
 - Update custom env documentation to clarify what step and reset return (@justinkterry)
 - Add RL tips and tricks for doing RL experiments
+- Corrected lots of typos
+- Add spell check to documentation if available
 
 
 Release 2.8.0 (2019-09-29)
@@ -388,7 +390,7 @@ Release 2.1.1 (2018-10-20)
 --------------------------
 
 - fixed MpiAdam synchronization issue in PPO1 (thanks to @brendenpetersen) issue #50
-- fixed dependency issues (new mujoco-py requires a mujoco licence + gym broke MultiDiscrete space shape)
+- fixed dependency issues (new mujoco-py requires a mujoco license + gym broke MultiDiscrete space shape)
 
 
 Release 2.1.0 (2018-10-2)
