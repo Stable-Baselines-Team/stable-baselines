@@ -39,7 +39,8 @@ class VecNormalize(VecEnvWrapper):
         self.training = training
         self.norm_obs = norm_obs
         self.norm_reward = norm_reward
-        self.old_obs = np.array([])
+        self.old_obs = None
+        self.old_rews = None
 
     def __getstate__(self):
         """
@@ -88,48 +89,69 @@ class VecNormalize(VecEnvWrapper):
         where 'news' is a boolean vector indicating whether each element is new.
         """
         obs, rews, news, infos = self.venv.step_wait()
-        self.ret = self.ret * self.gamma + rews
         self.old_obs = obs
-        obs = self._normalize_observation(obs)
-        if self.norm_reward:
-            if self.training:
-                self.ret_rms.update(self.ret)
-            rews = np.clip(rews / np.sqrt(self.ret_rms.var + self.epsilon), -self.clip_reward, self.clip_reward)
+        self.old_rews = rews
+
+        if self.training:
+            self.obs_rms.update(obs)
+        obs = self.normalize_obs(obs)
+
+        if self.training:
+            self._update_reward(rews)
+        rews = self.normalize_reward(rews)
+
         self.ret[news] = 0
         return obs, rews, news, infos
 
-    def _normalize_observation(self, obs):
+    def _update_reward(self, reward: np.ndarray) -> None:
+        """Update reward normalization statistics."""
+        self.ret = self.ret * self.gamma + reward
+        self.ret_rms.update(self.ret)
+
+    def normalize_obs(self, obs: np.ndarray) -> np.ndarray:
         """
-        :param obs: (numpy tensor)
+        Normalize observations using this VecNormalize's observations statistics.
+        Calling this method does not update statistics.
         """
         if self.norm_obs:
-            if self.training:
-                self.obs_rms.update(obs)
-            obs = np.clip((obs - self.obs_rms.mean) / np.sqrt(self.obs_rms.var + self.epsilon), -self.clip_obs,
+            obs = np.clip((obs - self.obs_rms.mean) / np.sqrt(self.obs_rms.var + self.epsilon),
+                          -self.clip_obs,
                           self.clip_obs)
-            return obs
-        else:
-            return obs
+        return obs
 
-    def get_original_obs(self):
+    def normalize_reward(self, reward: np.ndarray) -> np.ndarray:
         """
-        returns the unnormalized observation
+        Normalize rewards using this VecNormalize's rewards statistics.
+        Calling this method does not update statistics.
+        """
+        if self.norm_reward:
+            reward = np.clip(reward / np.sqrt(self.ret_rms.var + self.epsilon),
+                           -self.clip_reward, self.clip_reward)
+        return reward
 
-        :return: (numpy float)
+    def get_original_obs(self) -> np.ndarray:
         """
-        return self.old_obs
+        Returns an unnormalized version of the observations from the most recent
+        step or reset.
+        """
+        return self.old_obs.copy()
+
+    def get_original_reward(self) -> np.ndarray:
+        """
+        Returns an unnormalized version of the rewards from the most recent step.
+        """
+        return self.old_rews.copy()
 
     def reset(self):
         """
         Reset all environments
         """
         obs = self.venv.reset()
-        if len(np.array(obs).shape) == 1:  # for when num_cpu is 1
-            self.old_obs = [obs]
-        else:
-            self.old_obs = obs
+        self.old_obs = obs
         self.ret = np.zeros(self.num_envs)
-        return self._normalize_observation(obs)
+        if self.training:
+            self._update_reward(self.ret)
+        return self.normalize_obs(obs)
 
     @staticmethod
     def load(load_path, venv):

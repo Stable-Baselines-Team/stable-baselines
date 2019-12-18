@@ -24,7 +24,14 @@ New Features:
 - Environments are automatically wrapped in a `DummyVecEnv` if needed when passing them to the model constructor
 - Added `stable_baselines.common.make_vec_env` helper to simplify VecEnv creation
 - Added `stable_baselines.common.evaluation.evaluate_policy` helper to simplify model evaluation
-- `VecNormalize` now supports being pickled and unpickled.
+- `VecNormalize` changes:
+
+   - Now supports being pickled and unpickled (@AdamGleave).
+   - New methods `.normalize_obs(obs)` and `normalize_reward(rews)` apply normalization
+     to arbitrary observation or rewards without updating statistics (@shwang)
+   - `.get_original_reward()` returns the unnormalized rewards from the most recent timestep
+   - `.reset()` now collects observation statistics (used to only apply normalization)
+
 - Add parameter `exploration_initial_eps` to DQN. (@jdossgollin)
 - Add type checking and PEP 561 compliance.
   Note: most functions are still not annotated, this will be a gradual process.
