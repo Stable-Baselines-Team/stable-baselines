@@ -12,7 +12,8 @@ class DummyVecEnv(VecEnv):
     multiprocess or multithread outweighs the environment computation time. This can also be used for RL methods that
     require a vectorized environment, but that you want a single environments to train with.
 
-    :param env_fns: ([Gym Environment]) the list of environments to vectorize
+    :param env_fns: ([callable]) A list of functions that will create the environments
+        (each callable returns a `Gym.Env` instance when called).
     """
 
     def __init__(self, env_fns):

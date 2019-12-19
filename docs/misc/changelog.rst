@@ -6,8 +6,10 @@ Changelog
 For download links, please look at `Github release page <https://github.com/hill-a/stable-baselines/releases>`_.
 
 
-Pre-Release 2.9.0a0 (WIP)
+Release 2.9.0 (2019-12-20)
 --------------------------
+
+*Reproducible results, automatic `VecEnv` wrapping, env checker and more usability improvements*
 
 Breaking Changes:
 ^^^^^^^^^^^^^^^^^
@@ -59,6 +61,9 @@ Others:
 - Add pull request template
 - Replaced redundant code in load_results (@jbulow)
 - Minor PEP8 fixes in dqn.py (@justinkterry)
+- Add a message to the assert in `PPO2`
+- Update replay buffer doctring
+- Fix `VecEnv` docstrings
 
 Documentation:
 ^^^^^^^^^^^^^^

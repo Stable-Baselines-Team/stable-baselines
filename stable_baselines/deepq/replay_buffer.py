@@ -22,7 +22,7 @@ class ReplayBuffer(object):
 
     @property
     def storage(self):
-        """[(np.ndarray, float, float, np.ndarray, bool)]: content of the replay buffer"""
+        """[(Union[np.ndarray, int], Union[np.ndarray, int], float, Union[np.ndarray, int], bool)]: content of the replay buffer"""
         return self._storage
 
     @property
@@ -52,10 +52,10 @@ class ReplayBuffer(object):
         """
         add a new transition to the buffer
 
-        :param obs_t: (Any) the last observation
-        :param action: ([float]) the action
+        :param obs_t: (Union[np.ndarray, int]) the last observation
+        :param action: (Union[np.ndarray, int]) the action
         :param reward: (float) the reward of the transition
-        :param obs_tp1: (Any) the current observation
+        :param obs_tp1: (Union[np.ndarray, int]) the current observation
         :param done: (bool) is the episode done
         """
         data = (obs_t, action, reward, obs_tp1, done)
