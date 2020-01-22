@@ -15,6 +15,7 @@ import tensorflow as tf
 from stable_baselines.common.misc_util import set_global_seeds
 from stable_baselines.common.save_util import data_to_json, json_to_data, params_to_bytes, bytes_to_params
 from stable_baselines.common.policies import get_policy_from_name, ActorCriticPolicy
+from stable_baselines.common.runners import AbstractEnvRunner
 from stable_baselines.common.vec_env import VecEnvWrapper, VecEnv, DummyVecEnv
 from stable_baselines import logger
 
@@ -747,6 +748,24 @@ class ActorCriticRLModel(BaseRLModel):
         self.step = None
         self.proba_step = None
         self.params = None
+        self._runner = None
+
+    def _make_runner(self) -> AbstractEnvRunner:
+        """Builds a new Runner.
+
+        Lazily called whenever `self.runner` is accessed and `self._runner is None`.
+        """
+        raise NotImplementedError("This model is not configured to use a Runner")
+
+    @property
+    def runner(self) -> AbstractEnvRunner:
+        if self._runner is None:
+            self._runner = self._make_runner()
+        return self._runner
+
+    def set_env(self, env):
+        self._runner = None  # New environment invalidates `self._runner`.
+        super().set_env(env)
 
     @abstractmethod
     def setup_model(self):

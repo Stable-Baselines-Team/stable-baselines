@@ -49,10 +49,6 @@ class A2C(ActorCriticRLModel):
                  tensorboard_log=None, _init_setup_model=True, policy_kwargs=None,
                  full_tensorboard_log=False, seed=None, n_cpu_tf_sess=None):
 
-        super(A2C, self).__init__(policy=policy, env=env, verbose=verbose, requires_vec_env=True,
-                                  _init_setup_model=_init_setup_model, policy_kwargs=policy_kwargs,
-                                  seed=seed, n_cpu_tf_sess=n_cpu_tf_sess)
-
         self.n_steps = n_steps
         self.gamma = gamma
         self.vf_coef = vf_coef
@@ -65,8 +61,6 @@ class A2C(ActorCriticRLModel):
         self.tensorboard_log = tensorboard_log
         self.full_tensorboard_log = full_tensorboard_log
 
-        self.graph = None
-        self.sess = None
         self.learning_rate_ph = None
         self.n_batch = None
         self.actions_ph = None
@@ -75,20 +69,25 @@ class A2C(ActorCriticRLModel):
         self.pg_loss = None
         self.vf_loss = None
         self.entropy = None
-        self.params = None
         self.apply_backprop = None
         self.train_model = None
         self.step_model = None
-        self.step = None
         self.proba_step = None
         self.value = None
         self.initial_state = None
         self.learning_rate_schedule = None
         self.summary = None
 
+        super(A2C, self).__init__(policy=policy, env=env, verbose=verbose, requires_vec_env=True,
+                                  _init_setup_model=_init_setup_model, policy_kwargs=policy_kwargs,
+                                  seed=seed, n_cpu_tf_sess=n_cpu_tf_sess)
+
         # if we are loading, it is possible the environment is not known, however the obs and action space are known
         if _init_setup_model:
             self.setup_model()
+
+    def _make_runner(self) -> AbstractEnvRunner:
+        return A2CRunner(self.env, self, n_steps=self.n_steps, gamma=self.gamma)
 
     def _get_pretrain_placeholders(self):
         policy = self.train_model
@@ -233,11 +232,10 @@ class A2C(ActorCriticRLModel):
             self.learning_rate_schedule = Scheduler(initial_value=self.learning_rate, n_values=total_timesteps,
                                                     schedule=self.lr_schedule)
 
-            runner = A2CRunner(self.env, self, n_steps=self.n_steps, gamma=self.gamma)
             t_start = time.time()
             for update in range(1, total_timesteps // self.n_batch + 1):
                 # true_reward is the reward without discount
-                obs, states, rewards, masks, actions, values, ep_infos, true_reward = runner.run()
+                obs, states, rewards, masks, actions, values, ep_infos, true_reward = self.runner.run()
                 self.ep_info_buf.extend(ep_infos)
                 _, value_loss, policy_entropy = self._train_step(obs, states, rewards, masks, actions, values,
                                                                  self.num_timesteps // self.n_batch, writer)

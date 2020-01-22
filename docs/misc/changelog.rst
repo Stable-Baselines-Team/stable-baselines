@@ -26,6 +26,12 @@ Bug Fixes:
 - Fixed Docker GPU run script, `scripts/run_docker_gpu.sh`, to work with new NVidia Container Toolkit.
 - Repeated calls to `RLModel.learn()` now preserve internal counters for some episode
   logging statistics that used to be zeroed at the start of every call.
+- Fixed a bug in PPO2, ACER, A2C, and ACKTR where repeated calls to `learn(total_timesteps)` reset
+  the environment on every call, potentially biasing samples toward early episode timesteps.
+  (@shwang)
+
+  - Fixed by adding lazy property `ActorCriticRLModel.runner`. Subclasses now use lazily-generated
+    `self.runner` instead of reinitializing a new Runner every time `learn()` is called.
 
 Deprecations:
 ^^^^^^^^^^^^^
@@ -33,6 +39,7 @@ Deprecations:
 Others:
 ^^^^^^^
 - Removed redundant return value from `a2c.utils::total_episode_reward_logger`. (@shwang)
+- Cleanup and refactoring in `common/identity_env.py` (@shwang)
 
 Documentation:
 ^^^^^^^^^^^^^^
