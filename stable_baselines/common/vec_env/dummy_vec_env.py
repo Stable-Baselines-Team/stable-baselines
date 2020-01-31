@@ -1,5 +1,6 @@
 from collections import OrderedDict
 import numpy as np
+from typing import Sequence
 
 from stable_baselines.common.vec_env.base_vec_env import VecEnv
 from stable_baselines.common.vec_env.util import copy_obs_dict, dict_to_obs, obs_space_info
@@ -57,10 +58,21 @@ class DummyVecEnv(VecEnv):
         for env in self.envs:
             env.close()
 
-    def get_images(self):
-        return [env.render(mode='rgb_array') for env in self.envs]
+    def get_images(self, *args, **kwargs) -> Sequence[np.ndarray]:
+        return [env.render(*args, mode='rgb_array', **kwargs) for env in self.envs]
 
     def render(self, *args, **kwargs):
+        """
+        Gym environment rendering. If there are multiple environments then
+        they are tiled together in one image via `BaseVecEnv.render()`.
+        Otherwise (if `self.num_envs == 1`), we pass the render call directly to the
+        underlying environment.
+
+        Therefore, some arguments such as `mode` will have values that are valid
+        only when `num_envs == 1`.
+
+        :param mode: The rendering type.
+        """
         if self.num_envs == 1:
             return self.envs[0].render(*args, **kwargs)
         else:
