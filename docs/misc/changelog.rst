@@ -44,6 +44,7 @@ Others:
 
 Documentation:
 ^^^^^^^^^^^^^^
+- Fixed example for creating a GIF (@KuKuXia)
 
 
 Release 2.9.0 (2019-12-20)
@@ -610,4 +611,4 @@ Thanks to @bjmuld @iambenzo @iandanforth @r7vme @brendenpetersen @huvar @abhiskk
 @XMaster96 @kantneel @Pastafarianist @GerardMaggiolino @PatrickWalter214 @yutingsz @sc420 @Aaahh @billtubbs
 @Miffyli @dwiel @miguelrass @qxcv @jaberkow @eavelardev @ruifeng96150 @pedrohbtp @srivatsankrishnan @evilsocket
 @MarvineGothic @jdossgollin @SyllogismRXS @rusu24edward @jbulow @Antymon @seheevic @justinkterry @edbeeching
-@flodorner
+@flodorner @KuKuXia

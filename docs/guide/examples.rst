@@ -632,4 +632,4 @@ Bonus: Make a GIF of a Trained Agent
       obs, _, _ ,_ = model.env.step(action)
       img = model.env.render(mode='rgb_array')
 
-  imageio.mimsave('lander_a2c.gif', [np.array(img[0]) for i, img in enumerate(images) if i%2 == 0], fps=29)
+  imageio.mimsave('lander_a2c.gif', [np.array(img) for i, img in enumerate(images) if i%2 == 0], fps=29)
