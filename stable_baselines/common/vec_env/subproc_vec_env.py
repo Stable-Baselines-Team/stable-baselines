@@ -21,6 +21,8 @@ def _worker(remote, parent_remote, env_fn_wrapper):
                     info['terminal_observation'] = observation
                     observation = env.reset()
                 remote.send((observation, reward, done, info))
+            elif cmd == 'seed':
+                remote.send(env.seed(data))
             elif cmd == 'reset':
                 observation = env.reset()
                 remote.send(observation)
@@ -106,6 +108,11 @@ class SubprocVecEnv(VecEnv):
         self.waiting = False
         obs, rews, dones, infos = zip(*results)
         return _flatten_obs(obs, self.observation_space), np.stack(rews), np.stack(dones), infos
+
+    def seed(self, seed=None):
+        for idx, remote in enumerate(self.remotes):
+            remote.send(('seed', seed + idx))
+        return [remote.recv() for remote in self.remotes]
 
     def reset(self):
         for remote in self.remotes:

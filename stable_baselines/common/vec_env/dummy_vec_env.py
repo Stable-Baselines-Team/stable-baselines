@@ -48,6 +48,12 @@ class DummyVecEnv(VecEnv):
         return (self._obs_from_buf(), np.copy(self.buf_rews), np.copy(self.buf_dones),
                 self.buf_infos.copy())
 
+    def seed(self, seed=None):
+        seeds = list()
+        for idx, env in enumerate(self.envs):
+            seeds.append(env.seed(seed + idx))
+        return seeds
+
     def reset(self):
         for env_idx in range(self.num_envs):
             obs = self.envs[env_idx].reset()

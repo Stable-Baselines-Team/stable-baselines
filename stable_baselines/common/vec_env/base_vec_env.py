@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import inspect
 import pickle
-from typing import Sequence
+from typing import Sequence, Optional, List, Union
 
 import cloudpickle
 import numpy as np
@@ -127,6 +127,18 @@ class VecEnv(ABC):
         """
         pass
 
+    @abstractmethod
+    def seed(self, seed: Optional[int] = None) -> List[Union[None, int]]:
+        """
+        Sets the random seeds for all environments, based on a given seed.
+        Each individual environment will still get its own seed, by incrementing the given seed.
+
+        :param seed: (Optional[int]) The random seed. May be None for completely random seeding.
+        :return: (List[Union[None, int]]) Returns a list containing the seeds for each individual env.
+            Note that all list elements may be None, if the env does not return anything when being seeded.
+        """
+        pass
+
     def step(self, actions):
         """
         Step the environments with the given action
@@ -224,6 +236,9 @@ class VecEnvWrapper(VecEnv):
     @abstractmethod
     def step_wait(self):
         pass
+
+    def seed(self, seed=None):
+        return self.venv.seed(seed)
 
     def close(self):
         return self.venv.close()

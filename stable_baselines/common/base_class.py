@@ -179,12 +179,7 @@ class BaseRLModel(ABC):
         # Seed python, numpy and tf random generator
         set_global_seeds(seed)
         if self.env is not None:
-            if isinstance(self.env, VecEnv):
-                # Use a different seed for each env
-                for idx in range(self.env.num_envs):
-                    self.env.env_method("seed", seed + idx)
-            else:
-                self.env.seed(seed)
+            self.env.seed(seed)
             # Seed the action space
             # useful when selecting random actions
             self.env.action_space.seed(seed)
