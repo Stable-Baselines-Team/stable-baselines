@@ -135,7 +135,7 @@ def _check_spaces(env: gym.Env) -> None:
     assert isinstance(env.action_space, spaces.Space), "The action space must inherit from gym.spaces" + gym_spaces
 
 
-def _check_render(env: gym.Env, warn=True, headless=False) -> None:
+def _check_render(env: gym.Env, warn: bool = True, headless: bool = False) -> None:
     """
     Check the declared render modes and the `render()`/`close()`
     method of the environment.
@@ -163,7 +163,7 @@ def _check_render(env: gym.Env, warn=True, headless=False) -> None:
         env.close()
 
 
-def check_env(env: gym.Env, warn=True, skip_render_check=True) -> None:
+def check_env(env: gym.Env, warn: bool = True, skip_render_check: bool = True) -> None:
     """
     Check that an environment follows Gym API.
     This is particularly useful when using a custom environment.
@@ -205,8 +205,8 @@ def check_env(env: gym.Env, warn=True, skip_render_check=True) -> None:
 
         # Check for the action space, it may lead to hard-to-debug issues
         if (isinstance(action_space, spaces.Box) and
-                (np.abs(action_space.low) != np.abs(action_space.high)
-                 or np.abs(action_space.low) > 1 or np.abs(action_space.high) > 1)):
+                (np.any(np.abs(action_space.low) != np.abs(action_space.high))
+                 or np.any(np.abs(action_space.low) > 1) or np.any(np.abs(action_space.high) > 1))):
             warnings.warn("We recommend you to use a symmetric and normalized Box action space (range=[-1, 1]) "
                           "cf https://stable-baselines.readthedocs.io/en/master/guide/rl_tips.html")
 

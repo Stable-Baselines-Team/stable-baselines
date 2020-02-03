@@ -190,7 +190,7 @@ Some of the baselines examples use [MuJoCo](http://www.mujoco.org) (multi-joint 
 All unit tests in baselines can be run using pytest runner:
 ```
 pip install pytest pytest-cov
-pytest --cov-config .coveragerc --cov-report html --cov-report term --cov=.
+make pytest
 ```
 
 ## Projects Using Stable-Baselines
