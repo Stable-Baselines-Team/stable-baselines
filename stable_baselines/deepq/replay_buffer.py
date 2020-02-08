@@ -66,6 +66,26 @@ class ReplayBuffer(object):
             self._storage[self._next_idx] = data
         self._next_idx = (self._next_idx + 1) % self._maxsize
 
+    def extend(self, obs_t, action, reward, obs_tp1, done):
+        """
+        add a new batch of transitions to the buffer
+
+        :param obs_t: (Union[Tuple[Union[np.ndarray, int]], np.ndarray]) the last batch of observations
+        :param action: (Union[Tuple[Union[np.ndarray, int]]], np.ndarray]) the batch of actions
+        :param reward: (Union[Tuple[float], np.ndarray]) the batch of the rewards of the transition
+        :param obs_tp1: (Union[Tuple[Union[np.ndarray, int]], np.ndarray]) the current batch of observations
+        :param done: (Union[Tuple[bool], np.ndarray]) terminal status of the batch
+
+        Note: uses the same names as .add to keep compatibility with named argument passing
+                but expects iterables and arrays with more than 1 dimensions
+        """
+        for data in zip(obs_t, action, reward, obs_tp1, done):
+            if self._next_idx >= len(self._storage):
+                self._storage.append(data)
+            else:
+                self._storage[self._next_idx] = data
+            self._next_idx = (self._next_idx + 1) % self._maxsize
+
     def _encode_sample(self, idxes):
         obses_t, actions, rewards, obses_tp1, dones = [], [], [], [], []
         for i in idxes:
@@ -132,6 +152,26 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         super().add(obs_t, action, reward, obs_tp1, done)
         self._it_sum[idx] = self._max_priority ** self._alpha
         self._it_min[idx] = self._max_priority ** self._alpha
+
+    def extend(self, obs_t, action, reward, obs_tp1, done):
+        """
+        add a new batch of transitions to the buffer
+
+        :param obs_t: (Union[Tuple[Union[np.ndarray, int]], np.ndarray]) the last batch of observations
+        :param action: (Union[Tuple[Union[np.ndarray, int]]], np.ndarray]) the batch of actions
+        :param reward: (Union[Tuple[float], np.ndarray]) the batch of the rewards of the transition
+        :param obs_tp1: (Union[Tuple[Union[np.ndarray, int]], np.ndarray]) the current batch of observations
+        :param done: (Union[Tuple[bool], np.ndarray]) terminal status of the batch
+
+        Note: uses the same names as .add to keep compatibility with named argument passing
+            but expects iterables and arrays with more than 1 dimensions
+        """
+        idx = self._next_idx
+        super().extend(obs_t, action, reward, obs_tp1, done)
+        while idx != self._next_idx:
+            self._it_sum[idx] = self._max_priority ** self._alpha
+            self._it_min[idx] = self._max_priority ** self._alpha
+            idx = (idx + 1) % self._maxsize
 
     def _sample_proportional(self, batch_size):
         mass = []
