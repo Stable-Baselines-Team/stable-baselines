@@ -306,14 +306,17 @@ class PPO2(ActorCriticRLModel):
         cliprange_vf = get_schedule_fn(self.cliprange_vf)
 
         new_tb_log = self._init_num_timesteps(reset_num_timesteps)
+        callback = self._init_callback(callback)
 
         with SetVerbosity(self.verbose), TensorboardWriter(self.graph, self.tensorboard_log, tb_log_name, new_tb_log) \
                 as writer:
             self._setup_learn()
 
             t_first_start = time.time()
-
             n_updates = total_timesteps // self.n_batch
+
+            callback.on_training_start(locals(), globals())
+
             for update in range(1, n_updates + 1):
                 assert self.n_batch % self.nminibatches == 0, ("The number of minibatches (`nminibatches`) "
                                                                "is not a factor of the total number of samples "
@@ -326,9 +329,19 @@ class PPO2(ActorCriticRLModel):
                 lr_now = self.learning_rate(frac)
                 cliprange_now = self.cliprange(frac)
                 cliprange_vf_now = cliprange_vf(frac)
+
+                callback.on_rollout_start()
                 # true_reward is the reward without discount
-                obs, returns, masks, actions, values, neglogpacs, states, ep_infos, true_reward = self.runner.run()
-                self.num_timesteps += self.n_batch
+                rollout = self.runner.run(callback)
+                # Unpack
+                obs, returns, masks, actions, values, neglogpacs, states, ep_infos, true_reward = rollout
+
+                callback.on_rollout_end()
+
+                # Early stopping due to the callback
+                if not self.runner.continue_training:
+                    break
+
                 self.ep_info_buf.extend(ep_infos)
                 mb_loss_vals = []
                 if states is None:  # nonrecurrent version
@@ -389,12 +402,7 @@ class PPO2(ActorCriticRLModel):
                         logger.logkv(loss_name, loss_val)
                     logger.dumpkvs()
 
-                if callback is not None:
-                    # Only stop training if return value is False, not when it is None. This is for backwards
-                    # compatibility with callbacks that have no return statement.
-                    if callback(locals(), globals()) is False:
-                        break
-
+            callback.on_training_end()
             return self
 
     def save(self, save_path, cloudpickle=False):
@@ -441,7 +449,7 @@ class Runner(AbstractEnvRunner):
         self.lam = lam
         self.gamma = gamma
 
-    def run(self):
+    def _run(self):
         """
         Run a learning step of the model
 
@@ -471,6 +479,16 @@ class Runner(AbstractEnvRunner):
             if isinstance(self.env.action_space, gym.spaces.Box):
                 clipped_actions = np.clip(actions, self.env.action_space.low, self.env.action_space.high)
             self.obs[:], rewards, self.dones, infos = self.env.step(clipped_actions)
+
+            self.model.num_timesteps += self.n_envs
+
+            if self.callback is not None:
+                # Abort training early
+                if self.callback.on_step() is False:
+                    self.continue_training = False
+                    # Return dummy values
+                    return [None] * 9
+
             for info in infos:
                 maybe_ep_info = info.get('episode')
                 if maybe_ep_info is not None:

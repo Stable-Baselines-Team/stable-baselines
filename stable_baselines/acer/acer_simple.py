@@ -475,6 +475,7 @@ class ACER(ActorCriticRLModel):
               reset_num_timesteps=True):
 
         new_tb_log = self._init_num_timesteps(reset_num_timesteps)
+        callback = self._init_callback(callback)
 
         with SetVerbosity(self.verbose), TensorboardWriter(self.graph, self.tensorboard_log, tb_log_name, new_tb_log) \
                 as writer:
@@ -491,10 +492,21 @@ class ACER(ActorCriticRLModel):
                 buffer = None
 
             t_start = time.time()
+            callback.on_training_start(locals(), globals())
 
             # n_batch samples, 1 on_policy call and multiple off-policy calls
             for steps in range(0, total_timesteps, self.n_batch):
-                enc_obs, obs, actions, rewards, mus, dones, masks = self.runner.run()
+
+                callback.on_rollout_start()
+
+                enc_obs, obs, actions, rewards, mus, dones, masks = self.runner.run(callback)
+
+                callback.on_rollout_end()
+
+                # Early stopping due to the callback
+                if not self.runner.continue_training:
+                    break
+
                 episode_stats.feed(rewards, dones)
 
                 if buffer is not None:
@@ -517,11 +529,6 @@ class ACER(ActorCriticRLModel):
                 names_ops, values_ops = self._train_step(obs, actions, rewards, dones, mus, self.initial_state, masks,
                                                          self.num_timesteps, writer)
 
-                if callback is not None:
-                    # Only stop training if return value is False, not when it is None. This is for backwards
-                    # compatibility with callbacks that have no return statement.
-                    if callback(locals(), globals()) is False:
-                        break
 
                 if self.verbose >= 1 and (int(steps / self.n_batch) % log_interval == 0):
                     logger.record_tabular("total_timesteps", self.num_timesteps)
@@ -554,7 +561,7 @@ class ACER(ActorCriticRLModel):
                         self._train_step(obs, actions, rewards, dones, mus, self.initial_state, masks,
                                          self.num_timesteps)
 
-                self.num_timesteps += self.n_batch
+        callback.on_training_end()
 
         return self
 
@@ -630,7 +637,7 @@ class _Runner(AbstractEnvRunner):
         self.states = model.initial_state
         self.dones = [False for _ in range(n_env)]
 
-    def run(self):
+    def _run(self):
         """
         Run a step leaning of the model
 
@@ -651,6 +658,16 @@ class _Runner(AbstractEnvRunner):
             if isinstance(self.env.action_space, Box):
                 clipped_actions = np.clip(actions, self.env.action_space.low, self.env.action_space.high)
             obs, rewards, dones, _ = self.env.step(clipped_actions)
+
+            self.model.num_timesteps += self.n_envs
+
+            if self.callback is not None:
+                # Abort training early
+                if self.callback.on_step() is False:
+                    self.continue_training = False
+                    # Return dummy values
+                    return [None] * 7
+
             # states information for statefull models like LSTM
             self.states = states
             self.dones = dones

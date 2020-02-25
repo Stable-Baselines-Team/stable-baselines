@@ -22,31 +22,36 @@ def evaluate_policy(model, env, n_eval_episodes=10, deterministic=True,
         this will raise an error if the performance is not met
     :param return_episode_rewards: (bool) If True, a list of reward per episode
         will be returned instead of the mean.
-    :return: (float, int) Mean reward per episode, total number of steps
-        returns ([float], int) when `return_episode_rewards` is True
+    :return: (float, float) Mean reward per episode, std of reward per episode
+        returns ([float], [int]) when `return_episode_rewards` is True
     """
     if isinstance(env, VecEnv):
         assert env.num_envs == 1, "You must pass only one environment when using this function"
 
-    episode_rewards, n_steps = [], 0
+    episode_rewards, episode_lengths = [], []
     for _ in range(n_eval_episodes):
         obs = env.reset()
         done, state = False, None
         episode_reward = 0.0
+        episode_length = 0
         while not done:
             action, state = model.predict(obs, state=state, deterministic=deterministic)
             obs, reward, done, _info = env.step(action)
             episode_reward += reward
             if callback is not None:
                 callback(locals(), globals())
-            n_steps += 1
+            episode_length += 1
             if render:
                 env.render()
         episode_rewards.append(episode_reward)
+        episode_lengths.append(episode_length)
+
     mean_reward = np.mean(episode_rewards)
+    std_reward = np.std(episode_rewards)
+
     if reward_threshold is not None:
         assert mean_reward > reward_threshold, 'Mean reward below threshold: '\
                                          '{:.2f} < {:.2f}'.format(mean_reward, reward_threshold)
     if return_episode_rewards:
-        return episode_rewards, n_steps
-    return mean_reward, n_steps
+        return episode_rewards, episode_lengths
+    return mean_reward, std_reward

@@ -51,7 +51,7 @@ Actions ``gym.spaces``:
 
 .. note::
 
-  Some logging values (like `ep_rewmean`, `eplenmean`) are only available when using a Monitor wrapper
+  Some logging values (like ``ep_rewmean``, ``eplenmean``) are only available when using a Monitor wrapper
   See `Issue #339 <https://github.com/hill-a/stable-baselines/issues/339>`_ for more info.
 
 
@@ -62,7 +62,7 @@ Completely reproducible results are not guaranteed across Tensorflow releases or
 Furthermore, results need not be reproducible between CPU and GPU executions, even when using identical seeds.
 
 In order to make make computations deterministic on CPU, on your specific problem on one specific platform,
-you need to pass a `seed` argument at the creation of a model and set `n_cpu_tf_sess=1` (number of cpu for Tensorflow session).
+you need to pass a ``seed`` argument at the creation of a model and set `n_cpu_tf_sess=1` (number of cpu for Tensorflow session).
 If you pass an environment to the model using `set_env()`, then you also need to seed the environment first.
 
 .. note::

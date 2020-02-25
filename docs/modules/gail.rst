@@ -16,7 +16,7 @@ to seperate expert trajectory from trajectories of the learned policy, which has
 .. note::
 
   GAIL requires :ref:`OpenMPI <openmpi>`. If OpenMPI isn't enabled, then GAIL isn't
-  imported into the `stable_baselines` module.
+  imported into the ``stable_baselines`` module.
 
 
 Notes

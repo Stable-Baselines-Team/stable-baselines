@@ -4,7 +4,7 @@ import numpy as np
 from stable_baselines.common.vec_env import VecEnv
 
 
-def traj_segment_generator(policy, env, horizon, reward_giver=None, gail=False):
+def traj_segment_generator(policy, env, horizon, reward_giver=None, gail=False, callback=None):
     """
     Compute target value using TD(lambda) estimator, and advantage with GAE(lambda)
 
@@ -13,6 +13,7 @@ def traj_segment_generator(policy, env, horizon, reward_giver=None, gail=False):
     :param horizon: (int) the number of timesteps to run per batch
     :param reward_giver: (TransitionClassifier) the reward predicter from obsevation and action
     :param gail: (bool) Whether we are using this generator for standard trpo or with gail
+    :param callback: (BaseCallback)
     :return: (dict) generator that returns a dict with the following keys:
 
         - observations: (np.ndarray) observations
@@ -27,6 +28,8 @@ def traj_segment_generator(policy, env, horizon, reward_giver=None, gail=False):
         - ep_rets: (float) cumulated current episode reward
         - ep_lens: (int) the length of the current episode
         - ep_true_rets: (float) the real environment reward
+        - continue_training: (bool) Whether to continue training
+            or stop early (triggered by the callback)
     """
     # Check when using GAIL
     assert not (gail and reward_giver is None), "You must pass a reward giver when using GAIL"
@@ -56,12 +59,15 @@ def traj_segment_generator(policy, env, horizon, reward_giver=None, gail=False):
     episode_start = True  # marks if we're on first timestep of an episode
     done = False
 
+    callback.on_rollout_start()
+
     while True:
         action, vpred, states, _ = policy.step(observation.reshape(-1, *observation.shape), states, done)
         # Slight weirdness here because we need value function at time T
         # before returning segment [0, T-1] so we get the correct
         # terminal value
         if step > 0 and step % horizon == 0:
+            callback.on_rollout_end()
             yield {
                     "observations": observations,
                     "rewards": rewards,
@@ -74,7 +80,8 @@ def traj_segment_generator(policy, env, horizon, reward_giver=None, gail=False):
                     "ep_rets": ep_rets,
                     "ep_lens": ep_lens,
                     "ep_true_rets": ep_true_rets,
-                    "total_timestep": current_it_len
+                    "total_timestep": current_it_len,
+                    'continue_training': True
             }
             _, vpred, _, _ = policy.step(observation.reshape(-1, *observation.shape))
             # Be careful!!! if you change the downstream algorithm to aggregate
@@ -84,6 +91,7 @@ def traj_segment_generator(policy, env, horizon, reward_giver=None, gail=False):
             ep_lens = []
             # Reset current iteration length
             current_it_len = 0
+            callback.on_rollout_start()
         i = step % horizon
         observations[i] = observation
         vpreds[i] = vpred[0]
@@ -101,6 +109,27 @@ def traj_segment_generator(policy, env, horizon, reward_giver=None, gail=False):
         else:
             observation, reward, done, info = env.step(clipped_action[0])
             true_reward = reward
+
+        if callback is not None:
+            if callback.on_step() is False:
+                # We have to return everything so pytype does not complain
+                yield {
+                    "observations": observations,
+                    "rewards": rewards,
+                    "dones": dones,
+                    "episode_starts": episode_starts,
+                    "true_rewards": true_rewards,
+                    "vpred": vpreds,
+                    "actions": actions,
+                    "nextvpred": vpred[0] * (1 - episode_start),
+                    "ep_rets": ep_rets,
+                    "ep_lens": ep_lens,
+                    "ep_true_rets": ep_true_rets,
+                    "total_timestep": current_it_len,
+                    'continue_training': False
+                    }
+                return
+
         rewards[i] = reward
         true_rewards[i] = true_reward
         dones[i] = done

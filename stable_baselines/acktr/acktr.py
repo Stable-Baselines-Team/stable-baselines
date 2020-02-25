@@ -287,6 +287,7 @@ class ACKTR(ActorCriticRLModel):
               reset_num_timesteps=True):
 
         new_tb_log = self._init_num_timesteps(reset_num_timesteps)
+        callback = self._init_callback(callback)
 
         with SetVerbosity(self.verbose), TensorboardWriter(self.graph, self.tensorboard_log, tb_log_name, new_tb_log) \
                 as writer:
@@ -327,15 +328,28 @@ class ACKTR(ActorCriticRLModel):
             else:
                 enqueue_threads = []
 
+            callback.on_training_start(locals(), globals())
+
             for update in range(1, total_timesteps // self.n_batch + 1):
+
+                callback.on_rollout_start()
+
                 # pytype:disable=bad-unpacking
                 # true_reward is the reward without discount
                 if isinstance(self.runner, PPO2Runner):
                     # We are using GAE
-                    obs, returns, masks, actions, values, _, states, ep_infos, true_reward = self.runner.run()
+                    rollout = self.runner.run(callback)
+                    obs, returns, masks, actions, values, _, states, ep_infos, true_reward = rollout
                 else:
-                    obs, states, returns, masks, actions, values, ep_infos, true_reward = self.runner.run()
+                    rollout = self.runner.run(callback)
+                    obs, states, returns, masks, actions, values, ep_infos, true_reward = rollout
                 # pytype:enable=bad-unpacking
+
+                callback.on_rollout_end()
+
+                # Early stopping due to the callback
+                if not self.runner.continue_training:
+                    break
 
                 self.ep_info_buf.extend(ep_infos)
                 policy_loss, value_loss, policy_entropy = self._train_step(obs, states, returns, masks, actions, values,
@@ -350,11 +364,6 @@ class ACKTR(ActorCriticRLModel):
                                                 masks.reshape((self.n_envs, self.n_steps)),
                                                 writer, self.num_timesteps)
 
-                if callback is not None:
-                    # Only stop training if return value is False, not when it is None. This is for backwards
-                    # compatibility with callbacks that have no return statement.
-                    if callback(locals(), globals()) is False:
-                        break
 
                 if self.verbose >= 1 and (update % log_interval == 0 or update == 1):
                     explained_var = explained_variance(values, returns)
@@ -370,11 +379,10 @@ class ACKTR(ActorCriticRLModel):
                         logger.logkv('ep_len_mean', safe_mean([ep_info['l'] for ep_info in self.ep_info_buf]))
                     logger.dump_tabular()
 
-                self.num_timesteps += self.n_batch + 1
-
             coord.request_stop()
             coord.join(enqueue_threads)
 
+        callback.on_training_end()
         return self
 
     def save(self, save_path, cloudpickle=False):

@@ -271,14 +271,18 @@ class TRPO(ActorCriticRLModel):
               reset_num_timesteps=True):
 
         new_tb_log = self._init_num_timesteps(reset_num_timesteps)
+        callback = self._init_callback(callback)
 
         with SetVerbosity(self.verbose), TensorboardWriter(self.graph, self.tensorboard_log, tb_log_name, new_tb_log) \
                 as writer:
             self._setup_learn()
 
             with self.sess.as_default():
+                callback.on_training_start(locals(), globals())
+
                 seg_gen = traj_segment_generator(self.policy_pi, self.env, self.timesteps_per_batch,
-                                                 reward_giver=self.reward_giver, gail=self.using_gail)
+                                                 reward_giver=self.reward_giver,
+                                                 gail=self.using_gail, callback=callback)
 
                 episodes_so_far = 0
                 timesteps_so_far = 0
@@ -302,12 +306,7 @@ class TRPO(ActorCriticRLModel):
                     #  ep_stats = Stats(["True_rewards", "Rewards", "Episode_length"])
 
                 while True:
-                    if callback is not None:
-                        # Only stop training if return value is False, not when it is None. This is for backwards
-                        # compatibility with callbacks that have no return statement.
-                        if callback(locals(), globals()) is False:
-                            break
-                    if total_timesteps and timesteps_so_far >= total_timesteps:
+                    if timesteps_so_far >= total_timesteps:
                         break
 
                     logger.log("********** Iteration %i ************" % iters_so_far)
@@ -327,6 +326,11 @@ class TRPO(ActorCriticRLModel):
                     for k in range(self.g_step):
                         with self.timed("sampling"):
                             seg = seg_gen.__next__()
+
+                        # Stop training early (triggered by the callback)
+                        if not seg.get('continue_training', True):  # pytype: disable=attribute-error
+                            break
+
                         add_vtarg_and_adv(seg, self.gamma, self.lam)
                         # ob, ac, atarg, ret, td1ret = map(np.concatenate, (obs, acs, atargs, rets, td1rets))
                         observation, action = seg["observations"], seg["actions"]
@@ -410,7 +414,7 @@ class TRPO(ActorCriticRLModel):
                                 # list of tuples
                                 paramsums = MPI.COMM_WORLD.allgather((thnew.sum(), self.vfadam.getflat().sum()))
                                 assert all(np.allclose(ps, paramsums[0]) for ps in paramsums[1:])
-                            
+
                             for (loss_name, loss_val) in zip(self.loss_names, mean_losses):
                                 logger.record_tabular(loss_name, loss_val)
 
@@ -423,6 +427,11 @@ class TRPO(ActorCriticRLModel):
                                                                          shuffle=True):
                                     grad = self.allmean(self.compute_vflossandgrad(mbob, mbob, mbret, sess=self.sess))
                                     self.vfadam.update(grad, self.vf_stepsize)
+
+
+                    # Stop training early (triggered by the callback)
+                    if not seg.get('continue_training', True):  # pytype: disable=attribute-error
+                        break
 
                     logger.record_tabular("explained_variance_tdlam_before",
                                           explained_variance(vpredbefore, tdlamret))
@@ -489,6 +498,7 @@ class TRPO(ActorCriticRLModel):
                     if self.verbose >= 1 and self.rank == 0:
                         logger.dump_tabular()
 
+        callback.on_training_end()
         return self
 
     def save(self, save_path, cloudpickle=False):

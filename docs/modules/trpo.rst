@@ -12,7 +12,7 @@ is an iterative approach for optimizing policies with guaranteed monotonic impro
 .. note::
 
   TRPO requires :ref:`OpenMPI <openmpi>`. If OpenMPI isn't enabled, then TRPO isn't
-  imported into the `stable_baselines` module.
+  imported into the ``stable_baselines`` module.
 
 Notes
 -----

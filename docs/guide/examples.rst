@@ -1,3 +1,5 @@
+.. _examples:
+
 Examples
 ========
 
@@ -45,7 +47,7 @@ In the following example, we will train, save and load a DQN model on the Lunar 
 
 
 .. note::
-  LunarLander requires the python package `box2d`.
+  LunarLander requires the python package ``box2d``.
   You can install it using ``apt install swig`` and then ``pip install box2d box2d-kengz``
 
 .. note::
@@ -76,7 +78,7 @@ In the following example, we will train, save and load a DQN model on the Lunar 
   model = DQN.load("dqn_lunar")
 
   # Evaluate the agent
-  mean_reward, n_steps = evaluate_policy(model, model.get_env(), n_eval_episodes=10)
+  mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=10)
 
   # Enjoy trained agent
   obs = env.reset()
@@ -148,6 +150,10 @@ Multiprocessing: Unleashing the Power of Vectorized Environments
 Using Callback: Monitoring Training
 -----------------------------------
 
+.. note::
+
+	We recommend reading the `Callback section <callbacks.html>`_
+
 You can define a custom callback function that will be called inside the agent.
 This could be useful when you want to monitor training, for instance display live
 learning curves in Tensorboard (or in Visdom) or save the best agent.
@@ -169,40 +175,58 @@ If your callback returns False, training is aborted early.
   import numpy as np
   import matplotlib.pyplot as plt
 
+  from stable_baselines import DDPG
   from stable_baselines.ddpg.policies import LnMlpPolicy
+  from stable_baselines import results_plotter
   from stable_baselines.bench import Monitor
   from stable_baselines.results_plotter import load_results, ts2xy
-  from stable_baselines import DDPG
-  from stable_baselines.ddpg import AdaptiveParamNoiseSpec
-  from stable_baselines import results_plotter
+  from stable_baselines.common.noise import AdaptiveParamNoiseSpec
+  from stable_baselines.common.callbacks import BaseCallback
 
 
-  best_mean_reward, n_steps = -np.inf, 0
-
-  def callback(_locals, _globals):
+  class SaveOnBestTrainingRewardCallback(BaseCallback):
       """
-      Callback called at each step (for DQN an others) or after n steps (see ACER or PPO2)
-      :param _locals: (dict)
-      :param _globals: (dict)
-      """
-      global n_steps, best_mean_reward
-      # Print stats every 1000 calls
-      if (n_steps + 1) % 1000 == 0:
-          # Evaluate policy training performance
-          x, y = ts2xy(load_results(log_dir), 'timesteps')
-          if len(x) > 0:
-              mean_reward = np.mean(y[-100:])
-              print(x[-1], 'timesteps')
-              print("Best mean reward: {:.2f} - Last mean reward per episode: {:.2f}".format(best_mean_reward, mean_reward))
+      Callback for saving a model (the check is done every ``check_freq`` steps)
+      based on the training reward (in practice, we recommend using ``EvalCallback``).
 
-              # New best model, you could save the agent here
-              if mean_reward > best_mean_reward:
-                  best_mean_reward = mean_reward
-                  # Example for saving best model
-                  print("Saving new best model")
-                  _locals['self'].save(log_dir + 'best_model.pkl')
-      n_steps += 1
-      return True
+      :param check_freq: (int)
+      :param log_dir: (str) Path to the folder where the model will be saved.
+        It must contains the file created by the ``Monitor`` wrapper.
+      :param verbose: (int)
+      """
+      def __init__(self, check_freq: int, log_dir: str, verbose=1):
+          super(SaveOnBestTrainingRewardCallback, self).__init__(verbose)
+          self.check_freq = check_freq
+          self.log_dir = log_dir
+          self.save_path = os.path.join(log_dir, 'best_model')
+          self.best_mean_reward = -np.inf
+
+      def _init_callback(self) -> None:
+          # Create folder if needed
+          if self.save_path is not None:
+              os.makedirs(self.save_path, exist_ok=True)
+
+      def _on_step(self) -> bool:
+          if self.n_calls % self.check_freq == 0:
+
+            # Retrieve training reward
+            x, y = ts2xy(load_results(self.log_dir), 'timesteps')
+            if len(x) > 0:
+                # Mean training reward over the last 100 episodes
+                mean_reward = np.mean(y[-100:])
+                if self.verbose > 0:
+                  print("Num timesteps: {}".format(self.num_timesteps))
+                  print("Best mean reward: {:.2f} - Last mean reward per episode: {:.2f}".format(self.best_mean_reward, mean_reward))
+
+                # New best model, you could save the agent here
+                if mean_reward > self.best_mean_reward:
+                    self.best_mean_reward = mean_reward
+                    # Example for saving best model
+                    if self.verbose > 0:
+                      print("Saving new best model to {}".format(self.save_path))
+                    self.model.save(self.save_path)
+
+          return True
 
   # Create log dir
   log_dir = "tmp/"
@@ -210,12 +234,14 @@ If your callback returns False, training is aborted early.
 
   # Create and wrap the environment
   env = gym.make('LunarLanderContinuous-v2')
-  env = Monitor(env, log_dir, allow_early_resets=True)
+  env = Monitor(env, log_dir)
 
   # Add some param noise for exploration
   param_noise = AdaptiveParamNoiseSpec(initial_stddev=0.1, desired_action_stddev=0.1)
   # Because we use parameter noise, we should use a MlpPolicy with layer normalization
   model = DDPG(LnMlpPolicy, env, param_noise=param_noise, verbose=0)
+  # Create the callback: check every 1000 steps
+  callback = SaveOnBestTrainingRewardCallback(check_freq=1000, log_dir=log_dir)
   # Train the agent
   time_steps = 1e5
   model.learn(total_timesteps=int(time_steps), callback=callback)
@@ -470,7 +496,7 @@ The parking env is a goal-conditioned continuous control task, in which the vehi
 
 .. note::
 
-	the hyperparameters in the following example were optimized for that environment.
+  the hyperparameters in the following example were optimized for that environment.
 
 
 .. code-block:: python
@@ -519,14 +545,14 @@ The parking env is a goal-conditioned continuous control task, in which the vehi
   # Evaluate the agent
   episode_reward = 0
   for _ in range(100):
-  	action, _ = model.predict(obs)
-  	obs, reward, done, info = env.step(action)
-  	env.render()
-  	episode_reward += reward
-  	if done or info.get('is_success', False):
-  		print("Reward:", episode_reward, "Success?", info.get('is_success', False))
-  		episode_reward = 0.0
-  		obs = env.reset()
+    action, _ = model.predict(obs)
+    obs, reward, done, info = env.step(action)
+    env.render()
+    episode_reward += reward
+    if done or info.get('is_success', False):
+      print("Reward:", episode_reward, "Success?", info.get('is_success', False))
+      episode_reward = 0.0
+      obs = env.reset()
 
 
 

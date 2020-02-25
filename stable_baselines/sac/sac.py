@@ -368,6 +368,7 @@ class SAC(OffPolicyRLModel):
               log_interval=4, tb_log_name="SAC", reset_num_timesteps=True, replay_wrapper=None):
 
         new_tb_log = self._init_num_timesteps(reset_num_timesteps)
+        callback = self._init_callback(callback)
 
         if replay_wrapper is not None:
             self.replay_buffer = replay_wrapper(self.replay_buffer)
@@ -391,13 +392,10 @@ class SAC(OffPolicyRLModel):
             n_updates = 0
             infos_values = []
 
-            for step in range(total_timesteps):
-                if callback is not None:
-                    # Only stop training if return value is False, not when it is None. This is for backwards
-                    # compatibility with callbacks that have no return statement.
-                    if callback(locals(), globals()) is False:
-                        break
+            callback.on_training_start(locals(), globals())
+            callback.on_rollout_start()
 
+            for step in range(total_timesteps):
                 # Before training starts, randomly sample actions
                 # from a uniform distribution for better exploration.
                 # Afterwards, use the learned policy
@@ -420,6 +418,13 @@ class SAC(OffPolicyRLModel):
 
                 new_obs, reward, done, info = self.env.step(unscaled_action)
 
+                self.num_timesteps += 1
+
+                # Only stop training if return value is False, not when it is None. This is for backwards
+                # compatibility with callbacks that have no return statement.
+                if callback.on_step() is False:
+                    break
+
                 # Store transition in the replay buffer.
                 self.replay_buffer.add(obs, action, reward, new_obs, float(done))
                 obs = new_obs
@@ -437,6 +442,8 @@ class SAC(OffPolicyRLModel):
                                                 ep_done, writer, self.num_timesteps)
 
                 if step % self.train_freq == 0:
+                    callback.on_rollout_end()
+
                     mb_infos_vals = []
                     # Update policy, critics and target networks
                     for grad_step in range(self.gradient_steps):
@@ -459,6 +466,8 @@ class SAC(OffPolicyRLModel):
                     if len(mb_infos_vals) > 0:
                         infos_values = np.mean(mb_infos_vals, axis=0)
 
+                    callback.on_rollout_start()
+
                 episode_rewards[-1] += reward
                 if done:
                     if self.action_noise is not None:
@@ -477,7 +486,6 @@ class SAC(OffPolicyRLModel):
                     mean_reward = round(float(np.mean(episode_rewards[-101:-1])), 1)
 
                 num_episodes = len(episode_rewards)
-                self.num_timesteps += 1
                 # Display training infos
                 if self.verbose >= 1 and done and log_interval is not None and len(episode_rewards) % log_interval == 0:
                     fps = int(step / (time.time() - start_time))
@@ -499,6 +507,7 @@ class SAC(OffPolicyRLModel):
                     logger.dumpkvs()
                     # Reset infos:
                     infos_values = []
+            callback.on_training_end()
             return self
 
     def action_probability(self, observation, state=None, mask=None, actions=None, logp=False):

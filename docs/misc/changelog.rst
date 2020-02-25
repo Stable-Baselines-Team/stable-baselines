@@ -11,93 +11,107 @@ Pre-Release 2.10.0a0 (WIP)
 
 Breaking Changes:
 ^^^^^^^^^^^^^^^^^
+- ``evaluate_policy`` now returns the standard deviation of the reward per episode
+  as second return value (instead of ``n_steps``)
+- ``evaluate_policy`` now returns as second return value a list of the episode lengths
+  when ``return_episode_rewards`` is set to ``True`` (instead of ``n_steps``)
+- Callback are now called after each ``env.step()`` for consistency (it was called every ``n_steps`` before
+  in algorithm like ``A2C`` or ``PPO2``)
 
 New Features:
 ^^^^^^^^^^^^^
 - Parallelized updating and sampling from the replay buffer in DQN. (@flodorner)
 - Docker build script, `scripts/build_docker.sh`, can push images automatically.
+- Added callback collection
+- Added ``unwrap_vec_normalize`` and ``sync_envs_normalization`` in the ``vec_env`` module
+  to synchronize two VecNormalize environment
 - Added a seeding method for vectorized environments. (@NeoExtended)
 - Added extend method to store batches of experience in ReplayBuffer. (@solliet)
+
 
 Bug Fixes:
 ^^^^^^^^^^
 
-- Fixed Docker images via `scripts/build_docker.sh` and `Dockerfile`: GPU image now contains `tensorflow-gpu`,
-  and both images have `stable_baselines` installed in developer mode at correct directory for mounting.
-- Fixed Docker GPU run script, `scripts/run_docker_gpu.sh`, to work with new NVidia Container Toolkit.
-- Repeated calls to `RLModel.learn()` now preserve internal counters for some episode
+- Fixed Docker images via ``scripts/build_docker.sh`` and ``Dockerfile``: GPU image now contains ``tensorflow-gpu``,
+  and both images have ``stable_baselines`` installed in developer mode at correct directory for mounting.
+- Fixed Docker GPU run script, ``scripts/run_docker_gpu.sh``, to work with new NVidia Container Toolkit.
+- Repeated calls to ``RLModel.learn()`` now preserve internal counters for some episode
   logging statistics that used to be zeroed at the start of every call.
-- Fix `DummyVecEnv.render` for `num_envs > 1`. This used to print a warning and then not render at all. (@shwang)
-- Fixed a bug in PPO2, ACER, A2C, and ACKTR where repeated calls to `learn(total_timesteps)` reset
+- Fix `DummyVecEnv.render` for ``num_envs > 1``. This used to print a warning and then not render at all. (@shwang)
+- Fixed a bug in PPO2, ACER, A2C, and ACKTR where repeated calls to ``learn(total_timesteps)`` reset
   the environment on every call, potentially biasing samples toward early episode timesteps.
   (@shwang)
-- Fixed by adding lazy property `ActorCriticRLModel.runner`. Subclasses now use lazily-generated
-    `self.runner` instead of reinitializing a new Runner every time `learn()` is called.
-- Fixed a bug in `check_env` where it would fail on high dimensional action spaces
-- Fixed `Monitor.close()` that was not calling the parent method
-- Fixed a bug in `BaseRLModel` when seeding vectorized environments. (@NeoExtended)
+- Fixed by adding lazy property ``ActorCriticRLModel.runner``. Subclasses now use lazily-generated
+    ``self.runner`` instead of reinitializing a new Runner every time ``learn()`` is called.
+- Fixed a bug in ``check_env`` where it would fail on high dimensional action spaces
+- Fixed ``Monitor.close()`` that was not calling the parent method
+- Fixed a bug in ``BaseRLModel`` when seeding vectorized environments. (@NeoExtended)
+- Fixed ``num_timesteps`` computation to be consistent between algorithms (updated after ``env.step()``)
+  Only ``TRPO`` and ``PPO1`` update it differently (after synchronization) because they rely on MPI
 
 Deprecations:
 ^^^^^^^^^^^^^
 
 Others:
 ^^^^^^^
-- Removed redundant return value from `a2c.utils::total_episode_reward_logger`. (@shwang)
-- Cleanup and refactoring in `common/identity_env.py` (@shwang)
+- Removed redundant return value from ``a2c.utils::total_episode_reward_logger``. (@shwang)
+- Cleanup and refactoring in ``common/identity_env.py`` (@shwang)
 - Added a Makefile to simplify common development tasks (build the doc, type check, run the tests)
 
 Documentation:
 ^^^^^^^^^^^^^^
+- Add dedicated page for callbacks
 - Fixed example for creating a GIF (@KuKuXia)
+- Change Colab links in the README to point to the notebooks repo
 
 
 Release 2.9.0 (2019-12-20)
 --------------------------
 
-*Reproducible results, automatic `VecEnv` wrapping, env checker and more usability improvements*
+*Reproducible results, automatic ``VecEnv`` wrapping, env checker and more usability improvements*
 
 Breaking Changes:
 ^^^^^^^^^^^^^^^^^
-- The `seed` argument has been moved from `learn()` method to model constructor
+- The ``seed`` argument has been moved from `learn()` method to model constructor
   in order to have reproducible results
-- `allow_early_resets` of the `Monitor` wrapper now default to `True`
-- `make_atari_env` now returns a `DummyVecEnv` by default (instead of a `SubprocVecEnv`)
+- ``allow_early_resets`` of the ``Monitor`` wrapper now default to ``True``
+- ``make_atari_env`` now returns a ``DummyVecEnv`` by default (instead of a ``SubprocVecEnv``)
   this usually improves performance.
 - Fix inconsistency of sample type, so that mode/sample function returns tensor of tf.int64 in CategoricalProbabilityDistribution/MultiCategoricalProbabilityDistribution (@seheevic)
 
 New Features:
 ^^^^^^^^^^^^^
-- Add `n_cpu_tf_sess` to model constructor to choose the number of threads used by Tensorflow
-- Environments are automatically wrapped in a `DummyVecEnv` if needed when passing them to the model constructor
-- Added `stable_baselines.common.make_vec_env` helper to simplify VecEnv creation
-- Added `stable_baselines.common.evaluation.evaluate_policy` helper to simplify model evaluation
-- `VecNormalize` changes:
+- Add ``n_cpu_tf_sess`` to model constructor to choose the number of threads used by Tensorflow
+- Environments are automatically wrapped in a ``DummyVecEnv`` if needed when passing them to the model constructor
+- Added ``stable_baselines.common.make_vec_env`` helper to simplify VecEnv creation
+- Added ``stable_baselines.common.evaluation.evaluate_policy`` helper to simplify model evaluation
+- ``VecNormalize`` changes:
 
    - Now supports being pickled and unpickled (@AdamGleave).
-   - New methods `.normalize_obs(obs)` and `normalize_reward(rews)` apply normalization
+   - New methods ``.normalize_obs(obs)`` and `normalize_reward(rews)` apply normalization
      to arbitrary observation or rewards without updating statistics (@shwang)
-   - `.get_original_reward()` returns the unnormalized rewards from the most recent timestep
-   - `.reset()` now collects observation statistics (used to only apply normalization)
+   - ``.get_original_reward()`` returns the unnormalized rewards from the most recent timestep
+   - ``.reset()`` now collects observation statistics (used to only apply normalization)
 
-- Add parameter `exploration_initial_eps` to DQN. (@jdossgollin)
+- Add parameter ``exploration_initial_eps`` to DQN. (@jdossgollin)
 - Add type checking and PEP 561 compliance.
   Note: most functions are still not annotated, this will be a gradual process.
 - DDPG, TD3 and SAC accept non-symmetric action spaces. (@Antymon)
-- Add `check_env` util to check if a custom environment follows the gym interface (@araffin and @justinkterry)
+- Add ``check_env`` util to check if a custom environment follows the gym interface (@araffin and @justinkterry)
 
 Bug Fixes:
 ^^^^^^^^^^
 - Fix seeding, so it is now possible to have deterministic results on cpu
-- Fix a bug in DDPG where `predict` method with `deterministic=False` would fail
+- Fix a bug in DDPG where ``predict`` method with `deterministic=False` would fail
 - Fix a bug in TRPO: mean_losses was not initialized causing the logger to crash when there was no gradients (@MarvineGothic)
-- Fix a bug in `cmd_util` from API change in recent Gym versions
+- Fix a bug in ``cmd_util`` from API change in recent Gym versions
 - Fix a bug in DDPG, TD3 and SAC where warmup and random exploration actions would end up scaled in the replay buffer (@Antymon)
 
 Deprecations:
 ^^^^^^^^^^^^^
-- `nprocs` (ACKTR) and `num_procs` (ACER) are deprecated in favor of `n_cpu_tf_sess` which is now common
+- ``nprocs`` (ACKTR) and ``num_procs`` (ACER) are deprecated in favor of ``n_cpu_tf_sess`` which is now common
   to all algorithms
-- `VecNormalize`: `load_running_average` and `save_running_average` are deprecated in favour of using pickle.
+- ``VecNormalize``: ``load_running_average`` and ``save_running_average`` are deprecated in favour of using pickle.
 
 Others:
 ^^^^^^^
@@ -106,9 +120,9 @@ Others:
 - Add pull request template
 - Replaced redundant code in load_results (@jbulow)
 - Minor PEP8 fixes in dqn.py (@justinkterry)
-- Add a message to the assert in `PPO2`
+- Add a message to the assert in ``PPO2``
 - Update replay buffer doctring
-- Fix `VecEnv` docstrings
+- Fix ``VecEnv`` docstrings
 
 Documentation:
 ^^^^^^^^^^^^^^
@@ -116,19 +130,19 @@ Documentation:
 - Add Snake Game AI project (@pedrohbtp)
 - Add note on the support Tensorflow versions.
 - Remove unnecessary steps required for Windows installation.
-- Remove `DummyVecEnv` creation when not needed
-- Added `make_vec_env` to the examples to simplify VecEnv creation
+- Remove ``DummyVecEnv`` creation when not needed
+- Added ``make_vec_env`` to the examples to simplify VecEnv creation
 - Add QuaRL project (@srivatsankrishnan)
 - Add Pwnagotchi project (@evilsocket)
 - Fix multiprocessing example (@rusu24edward)
-- Fix `result_plotter` example
+- Fix ``result_plotter`` example
 - Add JNRR19 tutorial (by @edbeeching, @hill-a and @araffin)
 - Updated notebooks link
 - Fix typo in algos.rst, "containes" to "contains" (@SyllogismRXS)
 - Fix outdated source documentation for load_results
 - Add PPO_CPP project (@Antymon)
 - Add section on C++ portability of Tensorflow models (@Antymon)
-- Update custom env documentation to reflect new gym API for the `close()` method (@justinkterry)
+- Update custom env documentation to reflect new gym API for the ``close()`` method (@justinkterry)
 - Update custom env documentation to clarify what step and reset return (@justinkterry)
 - Add RL tips and tricks for doing RL experiments
 - Corrected lots of typos
@@ -143,28 +157,28 @@ Release 2.8.0 (2019-09-29)
 Breaking Changes:
 ^^^^^^^^^^^^^^^^^
 - OpenMPI-dependent algorithms (PPO1, TRPO, GAIL, DDPG) are disabled in the
-  default installation of stable_baselines. `mpi4py` is now installed as an
-  extra. When `mpi4py` is not available, stable-baselines skips imports of
+  default installation of stable_baselines. ``mpi4py`` is now installed as an
+  extra. When ``mpi4py`` is not available, stable-baselines skips imports of
   OpenMPI-dependent algorithms.
   See :ref:`installation notes <openmpi>` and
   `Issue #430 <https://github.com/hill-a/stable-baselines/issues/430>`_.
-- SubprocVecEnv now defaults to a thread-safe start method, `forkserver` when
-  available and otherwise `spawn`. This may require application code be
-  wrapped in `if __name__ == '__main__'`. You can restore previous behavior
-  by explicitly setting `start_method = 'fork'`. See
+- SubprocVecEnv now defaults to a thread-safe start method, ``forkserver`` when
+  available and otherwise ``spawn``. This may require application code be
+  wrapped in ``if __name__ == '__main__'``. You can restore previous behavior
+  by explicitly setting ``start_method = 'fork'``. See
   `PR #428 <https://github.com/hill-a/stable-baselines/pull/428>`_.
 - Updated dependencies: tensorflow v1.8.0 is now required
-- Removed `checkpoint_path` and `checkpoint_freq` argument from `DQN` that were not used
-- Removed `bench/benchmark.py` that was not used
-- Removed several functions from `common/tf_util.py` that were not used
-- Removed `ppo1/run_humanoid.py`
+- Removed ``checkpoint_path`` and ``checkpoint_freq`` argument from ``DQN`` that were not used
+- Removed ``bench/benchmark.py`` that was not used
+- Removed several functions from ``common/tf_util.py`` that were not used
+- Removed ``ppo1/run_humanoid.py``
 
 New Features:
 ^^^^^^^^^^^^^
-- **important change** Switch to using zip-archived JSON and Numpy `savez` for
+- **important change** Switch to using zip-archived JSON and Numpy ``savez`` for
   storing models for better support across library/Python versions. (@Miffyli)
 - ACKTR now supports continuous actions
-- Add `double_q` argument to `DQN` constructor
+- Add ``double_q`` argument to ``DQN`` constructor
 
 Bug Fixes:
 ^^^^^^^^^^
@@ -172,8 +186,8 @@ Bug Fixes:
   where OpenMPI would cause stable-baselines to hang on Ubuntu installs.
   See :ref:`installation notes <openmpi>` and
   `Issue #430 <https://github.com/hill-a/stable-baselines/issues/430>`_.
-- Fix a bug when calling `logger.configure()` with MPI enabled (@keshaviyengar)
-- set `allow_pickle=True` for numpy>=1.17.0 when loading expert dataset
+- Fix a bug when calling ``logger.configure()`` with MPI enabled (@keshaviyengar)
+- set ``allow_pickle=True`` for numpy>=1.17.0 when loading expert dataset
 - Fix a bug when using VecCheckNan with numpy ndarray as state.  `Issue #489 <https://github.com/hill-a/stable-baselines/issues/489>`_. (@ruifeng96150)
 
 Deprecations:
@@ -184,13 +198,13 @@ Deprecations:
 
 Others:
 ^^^^^^^
-- Implementations of noise classes (`AdaptiveParamNoiseSpec`, `NormalActionNoise`,
-  `OrnsteinUhlenbeckActionNoise`) were moved from `stable_baselines.ddpg.noise`
-  to `stable_baselines.common.noise`. The API remains backward-compatible;
-  for example `from stable_baselines.ddpg.noise import NormalActionNoise` is still
+- Implementations of noise classes (``AdaptiveParamNoiseSpec``, ``NormalActionNoise``,
+  ``OrnsteinUhlenbeckActionNoise``) were moved from `stable_baselines.ddpg.noise`
+  to ``stable_baselines.common.noise``. The API remains backward-compatible;
+  for example ``from stable_baselines.ddpg.noise import NormalActionNoise`` is still
   okay. (@shwang)
 - Docker images were updated
-- Cleaned up files in `common/` folder and in `acktr/` folder that were only used by old ACKTR version
+- Cleaned up files in ``common/`` folder and in `acktr/` folder that were only used by old ACKTR version
   (e.g. `filter.py`)
 - Renamed `acktr_disc.py` to `acktr.py`
 
@@ -214,9 +228,9 @@ Breaking Changes:
 New Features:
 ^^^^^^^^^^^^^
 - added Twin Delayed DDPG (TD3) algorithm, with HER support
-- added support for continuous action spaces to `action_probability`, computing the PDF of a Gaussian
+- added support for continuous action spaces to ``action_probability``, computing the PDF of a Gaussian
   policy in addition to the existing support for categorical stochastic policies.
-- added flag to `action_probability` to return log-probabilities.
+- added flag to ``action_probability`` to return log-probabilities.
 - added support for python lists and numpy arrays in ``logger.writekvs``. (@dwiel)
 - the info dict returned by VecEnvs now include a ``terminal_observation`` key providing access to the last observation in a trajectory. (@qxcv)
 
@@ -224,7 +238,7 @@ Bug Fixes:
 ^^^^^^^^^^
 - fixed a bug in ``traj_segment_generator`` where the ``episode_starts`` was wrongly recorded,
   resulting in wrong calculation of Generalized Advantage Estimation (GAE), this affects TRPO, PPO1 and GAIL (thanks to @miguelrass for spotting the bug)
-- added missing property `n_batch` in `BasePolicy`.
+- added missing property ``n_batch`` in ``BasePolicy``.
 
 Deprecations:
 ^^^^^^^^^^^^^
@@ -464,7 +478,7 @@ Release 2.1.0 (2018-10-2)
 - added patch fix for equal function using `gym.spaces.MultiDiscrete` and `gym.spaces.MultiBinary`
 - fixes for DQN action_probability
 - re-added double DQN + refactored DQN policies **breaking changes**
-- replaced `async` with `async_eigen_decomp` in ACKTR/KFAC for python 3.7 compatibility
+- replaced ``async`` with ``async_eigen_decomp`` in ACKTR/KFAC for python 3.7 compatibility
 - removed action clipping for prediction of continuous actions (see issue #36)
 - fixed NaN issue due to clipping the continuous action in the wrong place (issue #36)
 - documentation was updated (policy + DDPG example hyperparameters)
@@ -537,15 +551,15 @@ Release 1.0.1 (2018-08-20)
 - fixed behavior_clone weight loading for GAIL
 - fixed Tensorflow using all the GPU VRAM
 - fixed models so that they are all compatible with vectorized environments
-- fixed ```set_global_seed``` to update ```gym.spaces```'s random seed
+- fixed ``set_global_seed`` to update ``gym.spaces``'s random seed
 - fixed PPO1 and TRPO performance issues when learning identity function
 - added new tests for loading, saving, continuous actions and learning the identity function
 - fixed DQN wrapping for atari
 - added saving and loading for Vecnormalize wrapper
 - added automatic detection of action space (for the policy network)
 - fixed ACER buffer with constant values assuming n_stack=4
-- fixed some RL algorithms not clipping the action to be in the action_space, when using ```gym.spaces.Box```
-- refactored algorithms can take either a ```gym.Environment``` or a ```str``` ([if the environment name is registered](https://github.com/openai/gym/wiki/Environments))
+- fixed some RL algorithms not clipping the action to be in the action_space, when using ``gym.spaces.Box``
+- refactored algorithms can take either a ``gym.Environment`` or a ``str`` ([if the environment name is registered](https://github.com/openai/gym/wiki/Environments))
 - Hoftix in ACER (compared to v1.0.0)
 
 Future Work :

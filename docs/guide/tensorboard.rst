@@ -89,28 +89,33 @@ Here is a simple example on how to log both additional tensor or arbitrary scala
   import numpy as np
 
   from stable_baselines import SAC
+  from stable_baselines.common.callbacks import BaseCallback
 
   model = SAC("MlpPolicy", "Pendulum-v0", tensorboard_log="/tmp/sac/", verbose=1)
-  # Define a new property to avoid global variable
-  model.is_tb_set = False
+
+  class TensorboardCallback(BaseCallback):
+      """
+      Custom callback for plotting additional values in tensorboard.
+      """
+      def __init__(self, verbose=0):
+          self.is_tb_set = False
+          super(TensorboardCallback, self).__init__(verbose)
+
+      def _on_step(self) -> bool:
+          # Log additional tensor
+          if not self.is_tb_set:
+              with self.model.graph.as_default():
+                  tf.summary.scalar('value_target', tf.reduce_mean(self.model.value_target))
+                  self.model.summary = tf.summary.merge_all()
+              self.is_tb_set = True
+          # Log scalar value (here a random variable)
+          value = np.random.random()
+          summary = tf.Summary(value=[tf.Summary.Value(tag='random_value', simple_value=value)])
+          self.locals['writer'].add_summary(summary, self.num_timesteps)
+          return True
 
 
-  def callback(locals_, globals_):
-      self_ = locals_['self']
-      # Log additional tensor
-      if not self_.is_tb_set:
-          with self_.graph.as_default():
-              tf.summary.scalar('value_target', tf.reduce_mean(self_.value_target))
-              self_.summary = tf.summary.merge_all()
-          self_.is_tb_set = True
-      # Log scalar value (here a random variable)
-      value = np.random.random()
-      summary = tf.Summary(value=[tf.Summary.Value(tag='random_value', simple_value=value)])
-      locals_['writer'].add_summary(summary, self_.num_timesteps)
-      return True
-
-
-  model.learn(50000, callback=callback)
+  model.learn(50000, callback=TensorboardCallback())
 
 Legacy Integration
 -------------------

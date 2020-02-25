@@ -10,7 +10,7 @@ DDPG
 .. note::
 
   DDPG requires :ref:`OpenMPI <openmpi>`. If OpenMPI isn't enabled, then DDPG isn't
-  imported into the `stable_baselines` module.
+  imported into the ``stable_baselines`` module.
 
 .. warning::
 

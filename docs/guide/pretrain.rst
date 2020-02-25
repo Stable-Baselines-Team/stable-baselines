@@ -127,8 +127,7 @@ Using the ``expert_cartpole.npz`` dataset generated with the previous script.
 Data Structure of the Expert Dataset
 ------------------------------------
 
-The expert dataset is a ``.npz`` archive. The data is saved in python dictionary format with keys: ``actions``, ``episode_returns``, ``rewards``, ``obs``,
-``episode_starts``.
+The expert dataset is a ``.npz`` archive. The data is saved in python dictionary format with keys: ``actions``, ``episode_returns``, ``rewards``, ``obs``, ``episode_starts``.
 
 In case of images, ``obs`` contains the relative path to the images.
 
