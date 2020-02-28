@@ -8,14 +8,16 @@ import tensorflow as tf
 import numpy as np
 
 import stable_baselines.common.tf_util as tf_util
+from stable_baselines.common.tf_util import total_episode_reward_logger
 from stable_baselines.common import explained_variance, zipsame, dataset, fmt_row, colorize, ActorCriticRLModel, \
     SetVerbosity, TensorboardWriter
 from stable_baselines import logger
 from stable_baselines.common.mpi_adam import MpiAdam
 from stable_baselines.common.cg import conjugate_gradient
 from stable_baselines.common.policies import ActorCriticPolicy
-from stable_baselines.a2c.utils import total_episode_reward_logger
-from stable_baselines.trpo_mpi.utils import traj_segment_generator, add_vtarg_and_adv, flatten_lists
+from stable_baselines.common.misc_util import flatten_lists
+from stable_baselines.common.runners import traj_segment_generator
+from stable_baselines.trpo_mpi.utils import add_vtarg_and_adv
 
 
 class TRPO(ActorCriticRLModel):

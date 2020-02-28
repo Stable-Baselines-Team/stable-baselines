@@ -1,6 +1,6 @@
 import numpy as np
 
-from stable_baselines.deepq.replay_buffer import ReplayBuffer, PrioritizedReplayBuffer
+from stable_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer
 
 
 def test_extend_uniform():
@@ -19,10 +19,10 @@ def test_extend_uniform():
 
     states, actions, rewards, newstates, done = map(
         np.array, [states, actions, rewards, newstate, done])
-    
+
     ext.extend(states, actions, rewards, newstates, done)
     assert len(baseline) == len(ext)
-    
+
     # Check buffers have same values
     for i in range(nvals):
         for j in range(5):
@@ -33,6 +33,7 @@ def test_extend_uniform():
             else:
                 # for done, reward action
                 assert condition
+
 
 def test_extend_prioritized():
     nvals = 16
@@ -51,10 +52,10 @@ def test_extend_prioritized():
 
     states, actions, rewards, newstates, done = map(
         np.array, [states, actions, rewards, newstate, done])
-    
+
     ext.extend(states, actions, rewards, newstates, done)
     assert len(baseline) == len(ext)
-    
+
     # Check buffers have same values
     for i in range(nvals):
         for j in range(5):
@@ -65,8 +66,7 @@ def test_extend_prioritized():
             else:
                 # for done, reward action
                 assert condition
-    
+
     # assert priorities
     assert (baseline._it_min._value == ext._it_min._value).all()
     assert (baseline._it_sum._value == ext._it_sum._value).all()
-

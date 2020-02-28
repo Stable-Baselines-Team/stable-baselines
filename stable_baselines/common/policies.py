@@ -6,7 +6,8 @@ import numpy as np
 import tensorflow as tf
 from gym.spaces import Discrete
 
-from stable_baselines.a2c.utils import conv, linear, conv_to_fc, batch_to_seq, seq_to_batch, lstm
+from stable_baselines.common.tf_util import batch_to_seq, seq_to_batch
+from stable_baselines.common.tf_layers import conv, linear, conv_to_fc, lstm
 from stable_baselines.common.distributions import make_proba_dist_type, CategoricalProbabilityDistribution, \
     MultiCategoricalProbabilityDistribution, DiagGaussianProbabilityDistribution, BernoulliProbabilityDistribution
 from stable_baselines.common.input import observation_input

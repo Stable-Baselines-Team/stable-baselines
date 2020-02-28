@@ -17,6 +17,27 @@ Breaking Changes:
   when ``return_episode_rewards`` is set to ``True`` (instead of ``n_steps``)
 - Callback are now called after each ``env.step()`` for consistency (it was called every ``n_steps`` before
   in algorithm like ``A2C`` or ``PPO2``)
+- Removed unused code in ``common/a2c/utils.py`` (``calc_entropy_softmax``, ``make_path``)
+- **Refactoring, including removed files and moving functions.**
+
+   - Algorithms no longer import from each other, and ``common`` does not import from algorithms.
+   - ``a2c/utils.py`` removed and split into other files:
+      
+      - common/tf_util.py: ``sample``, ``calc_entropy``, ``mse``, ``avg_norm``, ``total_episode_reward_logger``, 
+        ``q_explained_variance``, ``gradient_add``, ``avg_norm``, ``check_shape``, 
+        ``seq_to_batch``, ``batch_to_seq``.
+      - common/tf_layers.py: ``conv``, ``linear``, ``lstm``, ``_ln``, ``lnlstm``, ``conv_to_fc``, ``ortho_init``.
+      - a2c/a2c.py: ``discount_with_dones``.
+      - acer/acer_simple.py: ``get_by_index``, ``EpisodeStats``.
+      - common/schedules.py: ``constant``, ``linear_schedule``, ``middle_drop``, ``double_linear_con``, ``double_middle_drop``,
+        ``SCHEDULES``, ``Scheduler``.
+   
+   - ``trpo_mpi/utils.py`` functions moved (``traj_segment_generator`` moved to ``common/runners.py``, ``flatten_lists`` to ``common/misc_util.py``).
+   - ``ppo2/ppo2.py`` functions moved (``safe_mean`` to ``common/math_util.py``, ``constfn`` and ``get_schedule_fn`` to ``common/schedules.py``).
+   - ``sac/policies.py`` function ``mlp`` moved to ``common/tf_layers.py``.
+   - ``sac/sac.py`` function ``get_vars`` removed (replaced with ``tf.util.get_trainable_vars``).
+   - ``deepq/replay_buffer.py`` renamed to ``common/buffers.py``.
+
 
 New Features:
 ^^^^^^^^^^^^^
@@ -57,6 +78,7 @@ Others:
 - Removed redundant return value from ``a2c.utils::total_episode_reward_logger``. (@shwang)
 - Cleanup and refactoring in ``common/identity_env.py`` (@shwang)
 - Added a Makefile to simplify common development tasks (build the doc, type check, run the tests)
+
 
 Documentation:
 ^^^^^^^^^^^^^^

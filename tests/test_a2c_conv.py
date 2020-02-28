@@ -2,7 +2,7 @@ import gym
 import numpy as np
 import tensorflow as tf
 
-from stable_baselines.a2c.utils import conv
+from stable_baselines.common.tf_layers import conv
 from stable_baselines.common.input import observation_input
 
 

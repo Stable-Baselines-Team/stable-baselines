@@ -8,10 +8,9 @@ from stable_baselines import logger
 from stable_baselines.common import tf_util, OffPolicyRLModel, SetVerbosity, TensorboardWriter
 from stable_baselines.common.vec_env import VecEnv
 from stable_baselines.common.schedules import LinearSchedule
+from stable_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer
 from stable_baselines.deepq.build_graph import build_train
-from stable_baselines.deepq.replay_buffer import ReplayBuffer, PrioritizedReplayBuffer
 from stable_baselines.deepq.policies import DQNPolicy
-from stable_baselines.a2c.utils import total_episode_reward_logger
 
 
 class DQN(OffPolicyRLModel):
@@ -229,8 +228,8 @@ class DQN(OffPolicyRLModel):
                 if writer is not None:
                     ep_rew = np.array([rew]).reshape((1, -1))
                     ep_done = np.array([done]).reshape((1, -1))
-                    total_episode_reward_logger(self.episode_reward, ep_rew, ep_done, writer,
-                                                self.num_timesteps)
+                    tf_util.total_episode_reward_logger(self.episode_reward, ep_rew, ep_done, writer,
+                                                        self.num_timesteps)
 
                 episode_rewards[-1] += rew
                 if done:

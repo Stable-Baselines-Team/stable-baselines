@@ -5,24 +5,13 @@ import warnings
 import numpy as np
 import tensorflow as tf
 
-from stable_baselines.a2c.utils import total_episode_reward_logger
 from stable_baselines.common import tf_util, OffPolicyRLModel, SetVerbosity, TensorboardWriter
 from stable_baselines.common.vec_env import VecEnv
-from stable_baselines.common.math_util import unscale_action, scale_action
-from stable_baselines.deepq.replay_buffer import ReplayBuffer
-from stable_baselines.ppo2.ppo2 import safe_mean, get_schedule_fn
+from stable_baselines.common.math_util import safe_mean, unscale_action, scale_action
+from stable_baselines.common.schedules import get_schedule_fn
+from stable_baselines.common.buffers import ReplayBuffer
 from stable_baselines.sac.policies import SACPolicy
 from stable_baselines import logger
-
-
-def get_vars(scope):
-    """
-    Alias for get_trainable_vars
-
-    :param scope: (str)
-    :return: [tf Variable]
-    """
-    return tf_util.get_trainable_vars(scope)
 
 
 class SAC(OffPolicyRLModel):
@@ -265,14 +254,14 @@ class SAC(OffPolicyRLModel):
                     # Policy train op
                     # (has to be separate from value train op, because min_qf_pi appears in policy_loss)
                     policy_optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate_ph)
-                    policy_train_op = policy_optimizer.minimize(policy_loss, var_list=get_vars('model/pi'))
+                    policy_train_op = policy_optimizer.minimize(policy_loss, var_list=tf_util.get_trainable_vars('model/pi'))
 
                     # Value train op
                     value_optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate_ph)
-                    values_params = get_vars('model/values_fn')
+                    values_params = tf_util.get_trainable_vars('model/values_fn')
 
-                    source_params = get_vars("model/values_fn/vf")
-                    target_params = get_vars("target/values_fn/vf")
+                    source_params = tf_util.get_trainable_vars("model/values_fn/vf")
+                    target_params = tf_util.get_trainable_vars("target/values_fn/vf")
 
                     # Polyak averaging for target variables
                     self.target_update_op = [
@@ -316,8 +305,8 @@ class SAC(OffPolicyRLModel):
                     tf.summary.scalar('learning_rate', tf.reduce_mean(self.learning_rate_ph))
 
                 # Retrieve parameters that must be saved
-                self.params = get_vars("model")
-                self.target_params = get_vars("target/values_fn/vf")
+                self.params = tf_util.get_trainable_vars("model")
+                self.target_params = tf_util.get_trainable_vars("target/values_fn/vf")
 
                 # Initialize Variables and target network
                 with self.sess.as_default():
@@ -438,8 +427,8 @@ class SAC(OffPolicyRLModel):
                     # Write reward per episode to tensorboard
                     ep_reward = np.array([reward]).reshape((1, -1))
                     ep_done = np.array([done]).reshape((1, -1))
-                    total_episode_reward_logger(self.episode_reward, ep_reward,
-                                                ep_done, writer, self.num_timesteps)
+                    tf_util.total_episode_reward_logger(self.episode_reward, ep_reward,
+                                                        ep_done, writer, self.num_timesteps)
 
                 if step % self.train_freq == 0:
                     callback.on_rollout_end()

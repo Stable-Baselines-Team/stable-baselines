@@ -3,7 +3,7 @@ import numpy as np
 from gym.spaces import Box
 
 from stable_baselines.common.policies import BasePolicy, nature_cnn, register_policy
-from stable_baselines.sac.policies import mlp
+from stable_baselines.common.tf_layers import mlp
 
 
 class TD3Policy(BasePolicy):

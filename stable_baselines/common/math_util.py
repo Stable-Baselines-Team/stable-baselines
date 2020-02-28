@@ -2,6 +2,17 @@ import numpy as np
 import scipy.signal
 
 
+def safe_mean(arr):
+    """
+    Compute the mean of an array if there is at least one element.
+    For empty array, return nan. It is used for logging only.
+
+    :param arr: (np.ndarray)
+    :return: (float)
+    """
+    return np.nan if len(arr) == 0 else np.mean(arr)
+
+
 def discount(vector, gamma):
     """
     computes discounted sums along 0th dimension of vector x.

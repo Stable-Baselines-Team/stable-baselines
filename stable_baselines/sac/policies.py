@@ -3,6 +3,7 @@ import numpy as np
 from gym.spaces import Box
 
 from stable_baselines.common.policies import BasePolicy, nature_cnn, register_policy
+from stable_baselines.common.tf_layers import mlp
 
 EPS = 1e-6  # Avoid NaN (prevents division by zero or log of zero)
 # CAP the standard deviation of the actor
@@ -32,25 +33,6 @@ def gaussian_entropy(log_std):
     :return: (tf.Tensor)
     """
     return tf.reduce_sum(log_std + 0.5 * np.log(2.0 * np.pi * np.e), axis=-1)
-
-
-def mlp(input_ph, layers, activ_fn=tf.nn.relu, layer_norm=False):
-    """
-    Create a multi-layer fully connected neural network.
-
-    :param input_ph: (tf.placeholder)
-    :param layers: ([int]) Network architecture
-    :param activ_fn: (tf.function) Activation function
-    :param layer_norm: (bool) Whether to apply layer normalization or not
-    :return: (tf.Tensor)
-    """
-    output = input_ph
-    for i, layer_size in enumerate(layers):
-        output = tf.layers.dense(output, layer_size, name='fc' + str(i))
-        if layer_norm:
-            output = tf.contrib.layers.layer_norm(output, center=True, scale=True)
-        output = activ_fn(output)
-    return output
 
 
 def clip_but_pass_gradient(input_, lower=-1., upper=1.):

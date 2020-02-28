@@ -8,12 +8,12 @@ from gym.spaces import Box, Discrete
 from stable_baselines import logger
 from stable_baselines.a2c.a2c import A2CRunner
 from stable_baselines.ppo2.ppo2 import Runner as PPO2Runner
-from stable_baselines.a2c.utils import Scheduler, mse, \
-    total_episode_reward_logger
+from stable_baselines.common.tf_util import mse, total_episode_reward_logger
 from stable_baselines.acktr import kfac
+from stable_baselines.common.schedules import Scheduler
 from stable_baselines.common import explained_variance, ActorCriticRLModel, tf_util, SetVerbosity, TensorboardWriter
 from stable_baselines.common.policies import ActorCriticPolicy, RecurrentActorCriticPolicy
-from stable_baselines.ppo2.ppo2 import safe_mean
+from stable_baselines.common.math_util import safe_mean
 
 
 class ACKTR(ActorCriticRLModel):

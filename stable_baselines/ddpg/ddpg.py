@@ -15,11 +15,10 @@ from stable_baselines import logger
 from stable_baselines.common import tf_util, OffPolicyRLModel, SetVerbosity, TensorboardWriter
 from stable_baselines.common.vec_env import VecEnv
 from stable_baselines.common.mpi_adam import MpiAdam
+from stable_baselines.common.buffers import ReplayBuffer
 from stable_baselines.common.math_util import unscale_action, scale_action
-from stable_baselines.ddpg.policies import DDPGPolicy
 from stable_baselines.common.mpi_running_mean_std import RunningMeanStd
-from stable_baselines.a2c.utils import total_episode_reward_logger
-from stable_baselines.deepq.replay_buffer import ReplayBuffer
+from stable_baselines.ddpg.policies import DDPGPolicy
 
 
 def normalize(tensor, stats):
@@ -898,8 +897,8 @@ class DDPG(OffPolicyRLModel):
                             if writer is not None:
                                 ep_rew = np.array([reward]).reshape((1, -1))
                                 ep_done = np.array([done]).reshape((1, -1))
-                                total_episode_reward_logger(self.episode_reward, ep_rew, ep_done,
-                                                            writer, self.num_timesteps)
+                                tf_util.total_episode_reward_logger(self.episode_reward, ep_rew, ep_done,
+                                                                    writer, self.num_timesteps)
                             step += 1
                             total_steps += 1
                             if rank == 0 and self.render:

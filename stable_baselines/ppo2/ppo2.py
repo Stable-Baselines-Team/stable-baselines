@@ -8,8 +8,9 @@ from stable_baselines import logger
 from stable_baselines.common import explained_variance, ActorCriticRLModel, tf_util, SetVerbosity, TensorboardWriter
 from stable_baselines.common.runners import AbstractEnvRunner
 from stable_baselines.common.policies import ActorCriticPolicy, RecurrentActorCriticPolicy
-from stable_baselines.a2c.utils import total_episode_reward_logger
-
+from stable_baselines.common.schedules import get_schedule_fn
+from stable_baselines.common.tf_util import total_episode_reward_logger
+from stable_baselines.common.math_util import safe_mean
 
 class PPO2(ActorCriticRLModel):
     """
@@ -523,24 +524,6 @@ class Runner(AbstractEnvRunner):
         return mb_obs, mb_returns, mb_dones, mb_actions, mb_values, mb_neglogpacs, mb_states, ep_infos, true_reward
 
 
-def get_schedule_fn(value_schedule):
-    """
-    Transform (if needed) learning rate and clip range
-    to callable.
-
-    :param value_schedule: (callable or float)
-    :return: (function)
-    """
-    # If the passed schedule is a float
-    # create a constant function
-    if isinstance(value_schedule, (float, int)):
-        # Cast to float to avoid errors
-        value_schedule = constfn(float(value_schedule))
-    else:
-        assert callable(value_schedule)
-    return value_schedule
-
-
 # obs, returns, masks, actions, values, neglogpacs, states = runner.run()
 def swap_and_flatten(arr):
     """
@@ -551,29 +534,3 @@ def swap_and_flatten(arr):
     """
     shape = arr.shape
     return arr.swapaxes(0, 1).reshape(shape[0] * shape[1], *shape[2:])
-
-
-def constfn(val):
-    """
-    Create a function that returns a constant
-    It is useful for learning rate schedule (to avoid code duplication)
-
-    :param val: (float)
-    :return: (function)
-    """
-
-    def func(_):
-        return val
-
-    return func
-
-
-def safe_mean(arr):
-    """
-    Compute the mean of an array if there is at least one element.
-    For empty array, return nan. It is used for logging only.
-
-    :param arr: (np.ndarray)
-    :return: (float)
-    """
-    return np.nan if len(arr) == 0 else np.mean(arr)

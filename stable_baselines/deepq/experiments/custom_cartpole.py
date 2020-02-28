@@ -7,7 +7,7 @@ import tensorflow as tf
 
 import stable_baselines.common.tf_util as tf_utils
 from stable_baselines import logger, deepq
-from stable_baselines.deepq.replay_buffer import ReplayBuffer
+from stable_baselines.common.buffers import ReplayBuffer
 from stable_baselines.deepq.policies import FeedForwardPolicy
 from stable_baselines.common.schedules import LinearSchedule
 
