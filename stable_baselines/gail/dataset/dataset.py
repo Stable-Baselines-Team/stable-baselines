@@ -204,7 +204,7 @@ class DataLoader(object):
         self.n_minibatches = len(indices) // batch_size
         # Add a partial minibatch, for instance
         # when there is not enough samples
-        if partial_minibatch and len(indices) / batch_size > 0:
+        if partial_minibatch and len(indices) % batch_size > 0:
             self.n_minibatches += 1
         self.batch_size = batch_size
         self.observations = observations
