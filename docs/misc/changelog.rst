@@ -69,6 +69,7 @@ Bug Fixes:
 - Fixed a bug in ``BaseRLModel`` when seeding vectorized environments. (@NeoExtended)
 - Fixed ``num_timesteps`` computation to be consistent between algorithms (updated after ``env.step()``)
   Only ``TRPO`` and ``PPO1`` update it differently (after synchronization) because they rely on MPI
+- Fixed bug in ``TRPO`` with NaN standardized advantages (@richardwu)
 - Fixed partial minibatch computation in ExpertDataset (@richardwu)
 
 Deprecations:
