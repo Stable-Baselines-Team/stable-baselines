@@ -43,8 +43,9 @@ def sync_envs_normalization(env: Union[gym.Env, VecEnv], eval_env: Union[gym.Env
         return
     while isinstance(env_tmp, VecEnvWrapper):
         if isinstance(env_tmp, VecNormalize):
-            # No need to sync the reward scaling
+            # sync reward and observation scaling
             eval_env_tmp.obs_rms = deepcopy(env_tmp.obs_rms)
+            eval_env_tmp.ret_rms = deepcopy(env_tmp.ret_rms)
         env_tmp = env_tmp.venv
         # Make pytype happy, in theory env and eval_env have the same type
         assert isinstance(eval_env_tmp, VecEnvWrapper), "the second env differs from the first env"

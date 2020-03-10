@@ -16,7 +16,8 @@ from stable_baselines.common.misc_util import set_global_seeds
 from stable_baselines.common.save_util import data_to_json, json_to_data, params_to_bytes, bytes_to_params
 from stable_baselines.common.policies import get_policy_from_name, ActorCriticPolicy
 from stable_baselines.common.runners import AbstractEnvRunner
-from stable_baselines.common.vec_env import VecEnvWrapper, VecEnv, DummyVecEnv
+from stable_baselines.common.vec_env import (VecEnvWrapper, VecEnv, DummyVecEnv,
+                                             VecNormalize, unwrap_vec_normalize)
 from stable_baselines.common.callbacks import BaseCallback, CallbackList, ConvertCallback
 from stable_baselines import logger
 
@@ -91,6 +92,9 @@ class BaseRLModel(ABC):
                                          " environment.")
                 self.n_envs = 1
 
+        # Get VecNormalize object if it exists
+        self._vec_normalize_env = unwrap_vec_normalize(self.env)
+
     def get_env(self):
         """
         returns the current environment (can be None if not defined)
@@ -98,6 +102,15 @@ class BaseRLModel(ABC):
         :return: (Gym Environment) The current environment
         """
         return self.env
+
+    def get_vec_normalize_env(self) -> Optional[VecNormalize]:
+        """
+        Return the ``VecNormalize`` wrapper of the training env
+        if it exists.
+
+        :return: Optional[VecNormalize] The ``VecNormalize`` env.
+        """
+        return self._vec_normalize_env
 
     def set_env(self, env):
         """
@@ -142,6 +155,7 @@ class BaseRLModel(ABC):
             self.n_envs = 1
 
         self.env = env
+        self._vec_normalize_env = unwrap_vec_normalize(env)
 
         # Invalidated by environment change.
         self.episode_reward = None

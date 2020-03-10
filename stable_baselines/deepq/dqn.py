@@ -190,6 +190,9 @@ class DQN(OffPolicyRLModel):
 
             reset = True
             obs = self.env.reset()
+            # Retrieve unnormalized observation for saving into the buffer
+            if self._vec_normalize_env is not None:
+                obs_ = self._vec_normalize_env.get_original_obs().squeeze()
 
             for _ in range(total_timesteps):
                 # Take action and update exploration to the newest value
@@ -221,17 +224,27 @@ class DQN(OffPolicyRLModel):
                 if callback.on_step() is False:
                     break
 
+                # Store only the unnormalized version
+                if self._vec_normalize_env is not None:
+                    new_obs_ = self._vec_normalize_env.get_original_obs().squeeze()
+                    reward_ = self._vec_normalize_env.get_original_reward().squeeze()
+                else:
+                    # Avoid changing the original ones
+                    obs_, new_obs_, reward_ = obs, new_obs, rew
                 # Store transition in the replay buffer.
-                self.replay_buffer.add(obs, action, rew, new_obs, float(done))
+                self.replay_buffer.add(obs_, action, reward_, new_obs_, float(done))
                 obs = new_obs
+                # Save the unnormalized observation
+                if self._vec_normalize_env is not None:
+                    obs_ = new_obs_
 
                 if writer is not None:
-                    ep_rew = np.array([rew]).reshape((1, -1))
+                    ep_rew = np.array([reward_]).reshape((1, -1))
                     ep_done = np.array([done]).reshape((1, -1))
                     tf_util.total_episode_reward_logger(self.episode_reward, ep_rew, ep_done, writer,
                                                         self.num_timesteps)
 
-                episode_rewards[-1] += rew
+                episode_rewards[-1] += reward_
                 if done:
                     maybe_is_success = info.get('is_success')
                     if maybe_is_success is not None:
@@ -254,10 +267,12 @@ class DQN(OffPolicyRLModel):
                         assert self.beta_schedule is not None, \
                                "BUG: should be LinearSchedule when self.prioritized_replay True"
                         experience = self.replay_buffer.sample(self.batch_size,
-                                                               beta=self.beta_schedule.value(self.num_timesteps))
+                                                               beta=self.beta_schedule.value(self.num_timesteps),
+                                                               env=self._vec_normalize_env)
                         (obses_t, actions, rewards, obses_tp1, dones, weights, batch_idxes) = experience
                     else:
-                        obses_t, actions, rewards, obses_tp1, dones = self.replay_buffer.sample(self.batch_size)
+                        obses_t, actions, rewards, obses_tp1, dones = self.replay_buffer.sample(self.batch_size,
+                                                                                                env=self._vec_normalize_env)
                         weights, batch_idxes = np.ones_like(rewards), None
                     # pytype:enable=bad-unpacking
 

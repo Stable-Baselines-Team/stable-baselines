@@ -71,6 +71,8 @@ Bug Fixes:
   Only ``TRPO`` and ``PPO1`` update it differently (after synchronization) because they rely on MPI
 - Fixed bug in ``TRPO`` with NaN standardized advantages (@richardwu)
 - Fixed partial minibatch computation in ExpertDataset (@richardwu)
+- Fixed normalization (with ``VecNormalize``) for off-policy algorithms
+- Fixed ``sync_envs_normalization`` to sync the reward normalization too
 
 Deprecations:
 ^^^^^^^^^^^^^

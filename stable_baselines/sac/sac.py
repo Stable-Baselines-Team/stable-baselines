@@ -317,7 +317,7 @@ class SAC(OffPolicyRLModel):
 
     def _train_step(self, step, writer, learning_rate):
         # Sample a batch from the replay buffer
-        batch = self.replay_buffer.sample(self.batch_size)
+        batch = self.replay_buffer.sample(self.batch_size, env=self._vec_normalize_env)
         batch_obs, batch_actions, batch_rewards, batch_next_obs, batch_dones = batch
 
         feed_dict = {
@@ -378,6 +378,10 @@ class SAC(OffPolicyRLModel):
             if self.action_noise is not None:
                 self.action_noise.reset()
             obs = self.env.reset()
+            # Retrieve unnormalized observation for saving into the buffer
+            if self._vec_normalize_env is not None:
+                obs_ = self._vec_normalize_env.get_original_obs().squeeze()
+
             n_updates = 0
             infos_values = []
 
@@ -414,9 +418,20 @@ class SAC(OffPolicyRLModel):
                 if callback.on_step() is False:
                     break
 
+                # Store only the unnormalized version
+                if self._vec_normalize_env is not None:
+                    new_obs_ = self._vec_normalize_env.get_original_obs().squeeze()
+                    reward_ = self._vec_normalize_env.get_original_reward().squeeze()
+                else:
+                    # Avoid changing the original ones
+                    obs_, new_obs_, reward_ = obs, new_obs, reward
+
                 # Store transition in the replay buffer.
-                self.replay_buffer.add(obs, action, reward, new_obs, float(done))
+                self.replay_buffer.add(obs_, action, reward_, new_obs_, float(done))
                 obs = new_obs
+                # Save the unnormalized observation
+                if self._vec_normalize_env is not None:
+                    obs_ = new_obs_
 
                 # Retrieve reward and episode length if using Monitor wrapper
                 maybe_ep_info = info.get('episode')
@@ -425,7 +440,7 @@ class SAC(OffPolicyRLModel):
 
                 if writer is not None:
                     # Write reward per episode to tensorboard
-                    ep_reward = np.array([reward]).reshape((1, -1))
+                    ep_reward = np.array([reward_]).reshape((1, -1))
                     ep_done = np.array([done]).reshape((1, -1))
                     tf_util.total_episode_reward_logger(self.episode_reward, ep_reward,
                                                         ep_done, writer, self.num_timesteps)
@@ -457,7 +472,7 @@ class SAC(OffPolicyRLModel):
 
                     callback.on_rollout_start()
 
-                episode_rewards[-1] += reward
+                episode_rewards[-1] += reward_
                 if done:
                     if self.action_noise is not None:
                         self.action_noise.reset()
