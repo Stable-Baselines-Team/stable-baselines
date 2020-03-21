@@ -364,7 +364,7 @@ class TD3(OffPolicyRLModel):
                     tf_util.total_episode_reward_logger(self.episode_reward, ep_reward,
                                                         ep_done, writer, self.num_timesteps)
 
-                if step % self.train_freq == 0:
+                if self.num_timesteps % self.train_freq == 0:
                     callback.on_rollout_end()
 
                     mb_infos_vals = []
