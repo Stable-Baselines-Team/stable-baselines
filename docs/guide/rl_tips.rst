@@ -21,7 +21,7 @@ TL;DR
 4. For better performance, increase the training budget
 
 
-Like any other subject, if you want to work with RL, you should first read about it (we have a dedicated `ressource page <rl.html>`_ to get you started)
+Like any other subject, if you want to work with RL, you should first read about it (we have a dedicated `resource page <rl.html>`_ to get you started)
 to understand what you are using. We also recommend you read Stable Baselines (SB) documentation and do the `tutorial <https://github.com/araffin/rl-tutorial-jnrr19>`_.
 It covers basic usage and guide you towards more advanced concepts of the library (e.g. callbacks and wrappers).
 
@@ -165,7 +165,7 @@ HER + (SAC/TD3/DDPG/DQN) depending on the action space.
 Tips and Tricks when creating a custom environment
 ==================================================
 
-If you want to learn about how to create a custom environment, we recommend you read this `page <custom_envs.html>`_.
+If you want to learn about how to create a custom environment, we recommend you read this `page <custom_env.html>`_.
 We also provide a `colab notebook <https://colab.research.google.com/github/araffin/rl-tutorial-jnrr19/blob/master/5_custom_gym_env.ipynb>`_ for
 a concrete example of creating a custom gym environment.
 
