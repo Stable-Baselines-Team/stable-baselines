@@ -14,6 +14,7 @@ Breaking Changes:
 
 New Features:
 ^^^^^^^^^^^^^
+- Added momentum parameter to A2C for the embedded RMSPropOptimizer (@kantneel)
 
 Bug Fixes:
 ^^^^^^^^^^
