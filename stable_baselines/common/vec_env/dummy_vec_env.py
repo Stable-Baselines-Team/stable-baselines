@@ -1,6 +1,8 @@
 from collections import OrderedDict
-import numpy as np
 from typing import Sequence
+from copy import deepcopy
+
+import numpy as np
 
 from stable_baselines.common.vec_env.base_vec_env import VecEnv
 from stable_baselines.common.vec_env.util import copy_obs_dict, dict_to_obs, obs_space_info
@@ -46,7 +48,7 @@ class DummyVecEnv(VecEnv):
                 obs = self.envs[env_idx].reset()
             self._save_obs(env_idx, obs)
         return (self._obs_from_buf(), np.copy(self.buf_rews), np.copy(self.buf_dones),
-                self.buf_infos.copy())
+                deepcopy(self.buf_infos))
 
     def seed(self, seed=None):
         seeds = list()

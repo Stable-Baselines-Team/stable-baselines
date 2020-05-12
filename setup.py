@@ -8,6 +8,11 @@ if sys.version_info.major != 3:
     print('This Python is only compatible with Python 3, but you are running '
           'Python {}. The installation will likely fail.'.format(sys.version_info.major))
 
+# Read version from file
+with open(os.path.join('stable_baselines', 'version.txt'), 'r') as file_handler:
+    __version__ = file_handler.read().strip()
+
+
 # Check tensorflow installation to avoid
 # breaking pre-installed tf gpu
 def find_tf_dependency():
@@ -114,7 +119,7 @@ setup(name='stable_baselines',
       packages=[package for package in find_packages()
                 if package.startswith('stable_baselines')],
       package_data={
-          'stable_baselines': ['py.typed'],
+          'stable_baselines': ['py.typed', 'version.txt'],
       },
       install_requires=[
           'gym[atari,classic_control]>=0.11',
@@ -152,7 +157,7 @@ setup(name='stable_baselines',
       license="MIT",
       long_description=long_description,
       long_description_content_type='text/markdown',
-      version="2.10.1a0",
+      version=__version__,
       )
 
 # python setup.py sdist

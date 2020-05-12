@@ -12,8 +12,8 @@ installed as follows
 
 .. note::
 
-	Stable-Baselines supports Tensorflow versions from 1.8.0 to 1.14.0, and does not work on
-	Tensorflow versions 2.0.0 and above. Support for Tensorflow 2 API is planned.
+	Stable-Baselines supports Tensorflow versions from 1.8.0 to 1.15.0, and does not work on
+	Tensorflow versions 2.0.0 and above. PyTorch support is done in `Stable-Baselines3 <https://github.com/DLR-RM/stable-baselines3>`_
 
 
 Ubuntu
@@ -74,15 +74,30 @@ If you have already installed with MPI support, you can disable MPI by uninstall
 with ``pip uninstall mpi4py``.
 
 
+.. note::
+
+	Unless you are using the bleeding-edge version, you need to install the correct Tensorflow version manually. See `Issue #849 <https://github.com/hill-a/stable-baselines/issues/849>`_
+
+
 Bleeding-edge version
 ---------------------
 
-With support for running tests and building the documentation.
+To install the latest master version:
+
+.. code-block:: bash
+
+	pip install git+https://github.com/hill-a/stable-baselines
+
+
+Development version
+-------------------
+
+To contribute to Stable-Baselines, with support for running tests and building the documentation.
 
 .. code-block:: bash
 
     git clone https://github.com/hill-a/stable-baselines && cd stable-baselines
-    pip install -e .[docs,tests]
+    pip install -e .[docs,tests,mpi]
 
 
 Using Docker Images

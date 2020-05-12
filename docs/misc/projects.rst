@@ -108,7 +108,7 @@ WaveRL: Training RL agents to perform active damping
 ----------------------------------------------------
 Reinforcement learning is used to train agents to control pistons attached to a bridge to cancel out vibrations.  The bridge is modeled as a one dimensional oscillating system and dynamics are simulated using a finite difference solver.  Agents were trained using Proximal Policy Optimization.  See presentation for environment detalis.
 
-| Authors: Jack Berkowitz
+| Author: Jack Berkowitz
 | Email: jackberkowitz88@gmail.com
 | GitHub: https://github.com/jaberkow/WaveRL
 | Presentation: http://bit.ly/WaveRLslides
@@ -140,7 +140,7 @@ Designing an autonomous robot to perform a task involves interactions between va
 
 Snake Game AI
 --------------------------
-AI to play the classic snake game. 
+AI to play the classic snake game.
 The game was trained using PPO2 available from stable-baselines and
 then exported to tensorflowjs to run directly on the browser
 
@@ -160,11 +160,10 @@ Pwnagotchi is an A2C-based “AI” powered by bettercap and running on a Raspbe
 
 Quantized Reinforcement Learning (QuaRL)
 ----------------------------------------
-
 QuaRL is a open-source framework to study the effects of quantization broad spectrum of reinforcement learning algorithms. The RL algorithms we used in
 this study are from stable-baselines.
 
-| Author: Srivatsan Krishnan, Sharad Chitlangia, Maximilian Lam, Zishen Wan, Aleksandra Faust, Vijay Janapa Reddi
+| Authors: Srivatsan Krishnan, Sharad Chitlangia, Maximilian Lam, Zishen Wan, Aleksandra Faust, Vijay Janapa Reddi
 | Email: srivatsan@seas.harvard.edu
 | Github: https://github.com/harvard-edge/quarl
 | Paper: https://arxiv.org/pdf/1910.01055.pdf
@@ -175,6 +174,25 @@ PPO_CPP: C++ version of a Deep Reinforcement Learning algorithm PPO
 Executes PPO at C++ level yielding notable execution performance speedups.
 Uses Stable Baselines to create a computational graph which is then used for training with custom environments by machine-code-compiled binary.
 
-| Authors: Szymon Brych
+| Author: Szymon Brych
 | Email: szymon.brych@gmail.com
 | GitHub: https://github.com/Antymon/ppo_cpp
+
+
+Learning Agile Robotic Locomotion Skills by Imitating Animals
+-------------------------------------------------------------
+Learning locomotion gaits by imitating animals. It uses PPO1 and AWR.
+
+| Authors: Xue Bin Peng, Erwin Coumans, Tingnan Zhang, Tsang-Wei Lee, Jie Tan, Sergey Levine
+| Website: https://xbpeng.github.io/projects/Robotic_Imitation/index.html
+| Github: https://github.com/google-research/motion_imitation
+| Paper: https://arxiv.org/abs/2004.00784
+
+
+Imitation Learning Baseline Implementations
+-------------------------------------------
+This project aims to provide clean implementations of imitation learning algorithms.
+Currently we have implementations of AIRL and GAIL, and intend to add more in the future.
+
+| Authors: Adam Gleave, Steven Wang, Nevan Wichers, Sam Toyer
+| Github: https://github.com/HumanCompatibleAI/imitation

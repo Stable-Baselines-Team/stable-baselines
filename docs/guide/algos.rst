@@ -61,13 +61,13 @@ Reproducibility
 Completely reproducible results are not guaranteed across Tensorflow releases or different platforms.
 Furthermore, results need not be reproducible between CPU and GPU executions, even when using identical seeds.
 
-In order to make make computations deterministic on CPU, on your specific problem on one specific platform,
+In order to make computations deterministic on CPU, on your specific problem on one specific platform,
 you need to pass a ``seed`` argument at the creation of a model and set `n_cpu_tf_sess=1` (number of cpu for Tensorflow session).
 If you pass an environment to the model using `set_env()`, then you also need to seed the environment first.
 
 .. note::
 
-  Because of the current limits of Tensorflow 1.x, we cannot ensure reproducible results on the GPU yet. We hope to solve that issue with Tensorflow 2.x support (cf `Issue #366 <https://github.com/hill-a/stable-baselines/issues/366>`_).
+  Because of the current limits of Tensorflow 1.x, we cannot ensure reproducible results on the GPU yet. This issue is solved in `Stable-Baselines3 "PyTorch edition" <https://github.com/DLR-RM/stable-baselines3>`_
 
 
 .. note::

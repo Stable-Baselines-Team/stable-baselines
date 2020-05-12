@@ -1,3 +1,5 @@
+import os
+
 from stable_baselines.a2c import A2C
 from stable_baselines.acer import ACER
 from stable_baselines.acktr import ACKTR
@@ -20,4 +22,7 @@ if mpi4py is not None:
     from stable_baselines.trpo_mpi import TRPO
 del mpi4py
 
-__version__ = "2.10.1a0"
+# Read version from file
+version_file = os.path.join(os.path.dirname(__file__), 'version.txt')
+with open(version_file, 'r') as file_handler:
+    __version__ = file_handler.read().strip()

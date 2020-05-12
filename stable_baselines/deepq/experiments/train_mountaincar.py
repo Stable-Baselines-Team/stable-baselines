@@ -31,7 +31,7 @@ def main(args):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Train DQN on cartpole")
+    parser = argparse.ArgumentParser(description="Train DQN on MountainCar")
     parser.add_argument('--max-timesteps', default=100000, type=int, help="Maximum number of timesteps")
     args = parser.parse_args()
     main(args)
