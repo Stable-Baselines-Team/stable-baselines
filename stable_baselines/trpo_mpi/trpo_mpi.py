@@ -269,6 +269,11 @@ class TRPO(ActorCriticRLModel):
                     tf_util.function([observation, old_policy.obs_ph, action, atarg, ret],
                                      [self.summary, tf_util.flatgrad(optimgain, var_list)] + losses)
 
+    def _initialize_dataloader(self):
+        """Initialize dataloader."""
+        batchsize = self.timesteps_per_batch // self.d_step
+        self.expert_dataset.init_dataloader(batchsize)
+
     def learn(self, total_timesteps, callback=None, log_interval=100, tb_log_name="TRPO",
               reset_num_timesteps=True):
 
@@ -297,9 +302,7 @@ class TRPO(ActorCriticRLModel):
                 if self.using_gail:
                     true_reward_buffer = deque(maxlen=40)
 
-                    # Initialize dataloader
-                    batchsize = self.timesteps_per_batch // self.d_step
-                    self.expert_dataset.init_dataloader(batchsize)
+                    self._initialize_dataloader()
 
                     #  Stats not used for now
                     # TODO: replace with normal tb logging
@@ -337,7 +340,6 @@ class TRPO(ActorCriticRLModel):
                         # ob, ac, atarg, ret, td1ret = map(np.concatenate, (obs, acs, atargs, rets, td1rets))
                         observation, action = seg["observations"], seg["actions"]
                         atarg, tdlamret = seg["adv"], seg["tdlamret"]
-
 
                         vpredbefore = seg["vpred"]  # predicted value function before update
                         atarg = (atarg - atarg.mean()) / (atarg.std() + 1e-8)  # standardized advantage function estimate
@@ -430,7 +432,6 @@ class TRPO(ActorCriticRLModel):
                                     grad = self.allmean(self.compute_vflossandgrad(mbob, mbob, mbret, sess=self.sess))
                                     self.vfadam.update(grad, self.vf_stepsize)
 
-
                     # Stop training early (triggered by the callback)
                     if not seg.get('continue_training', True):  # pytype: disable=attribute-error
                         break
@@ -504,9 +505,6 @@ class TRPO(ActorCriticRLModel):
         return self
 
     def save(self, save_path, cloudpickle=False):
-        if self.using_gail and self.expert_dataset is not None:
-            # Exit processes to pickle the dataset
-            self.expert_dataset.prepare_pickling()
         data = {
             "gamma": self.gamma,
             "timesteps_per_batch": self.timesteps_per_batch,

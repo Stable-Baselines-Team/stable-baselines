@@ -46,7 +46,7 @@ def mpi_moments(arr, axis=0, comm=None, keepdims=False):
     assert count1 == count
     std = np.sqrt(meansqdiff)
     if not keepdims:
-        newshape = mean.shape[:axis] + mean.shape[axis+1:]
+        newshape = mean.shape[:axis] + mean.shape[axis + 1:]
         mean = mean.reshape(newshape)
         std = std.reshape(newshape)
     return mean, std, count

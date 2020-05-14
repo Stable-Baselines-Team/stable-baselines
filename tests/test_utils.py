@@ -42,7 +42,6 @@ def test_custom_vec_env():
                        monitor_dir=monitor_dir, seed=0,
                        vec_env_cls=SubprocVecEnv, vec_env_kwargs={'start_method': None})
 
-
     assert env.num_envs == 1
     assert isinstance(env, SubprocVecEnv)
     assert os.path.isdir('logs/test_make_vec_env/')

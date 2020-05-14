@@ -1,4 +1,3 @@
-import sys
 import time
 import warnings
 
@@ -241,7 +240,6 @@ class SAC(OffPolicyRLModel):
                     # this is not used for now
                     # policy_loss = (policy_kl_loss + policy_regularization_loss)
                     policy_loss = policy_kl_loss
-
 
                     # Target for value fn regression
                     # We update the vf towards the min of two Q-functions in order to
@@ -530,7 +528,7 @@ class SAC(OffPolicyRLModel):
         observation = observation.reshape((-1,) + self.observation_space.shape)
         actions = self.policy_tf.step(observation, deterministic=deterministic)
         actions = actions.reshape((-1,) + self.action_space.shape)  # reshape to the correct action shape
-        actions = unscale_action(self.action_space, actions) # scale the output for the prediction
+        actions = unscale_action(self.action_space, actions)  # scale the output for the prediction
 
         if not vectorized_env:
             actions = actions[0]

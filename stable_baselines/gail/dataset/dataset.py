@@ -30,6 +30,8 @@ class ExpertDataset(object):
     :param sequential_preprocessing: (bool) Do not use subprocess to preprocess
         the data (slower but use less memory for the CI)
     """
+    # Excluded attribute when pickling the object
+    EXCLUDED_KEYS = {'dataloader', 'train_loader', 'val_loader'}
 
     def __init__(self, expert_path=None, traj_data=None, train_fraction=0.7, batch_size=64,
                  traj_limitation=-1, randomize=True, verbose=1, sequential_preprocessing=False):
@@ -118,13 +120,35 @@ class ExpertDataset(object):
                                      sequential=self.sequential_preprocessing)
 
     def __del__(self):
-        del self.dataloader, self.train_loader, self.val_loader
+        # Exit processes if needed
+        for key in self.EXCLUDED_KEYS:
+            if self.__dict__.get(key) is not None:
+                del self.__dict__[key]
 
-    def prepare_pickling(self):
+    def __getstate__(self):
         """
-        Exit processes in order to pickle the dataset.
+        Gets state for pickling.
+
+        Excludes processes that are not pickleable
         """
-        self.dataloader, self.train_loader, self.val_loader = None, None, None
+        # Remove processes in order to pickle the dataset.
+        return {key: val for key, val in self.__dict__.items() if key not in self.EXCLUDED_KEYS}
+
+    def __setstate__(self, state):
+        """
+        Restores pickled state.
+
+        init_dataloader() must be called
+        after unpickling before using it with GAIL.
+
+        :param state: (dict)
+        """
+        self.__dict__.update(state)
+        for excluded_key in self.EXCLUDED_KEYS:
+            assert excluded_key not in state
+        self.dataloader = None
+        self.train_loader = None
+        self.val_loader = None
 
     def log_info(self):
         """

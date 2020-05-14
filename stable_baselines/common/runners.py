@@ -90,7 +90,7 @@ def traj_segment_generator(policy, env, horizon, reward_giver=None, gail=False, 
 
     cur_ep_ret = 0  # return in current episode
     current_it_len = 0  # len of current iteration
-    current_ep_len = 0 # len of current episode
+    current_ep_len = 0  # len of current episode
     cur_ep_true_ret = 0
     ep_true_rets = []
     ep_rets = []  # returns of completed episodes in this segment

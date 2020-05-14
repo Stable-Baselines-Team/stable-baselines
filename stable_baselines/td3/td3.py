@@ -1,4 +1,3 @@
-import sys
 import time
 import warnings
 
@@ -390,7 +389,6 @@ class TD3(OffPolicyRLModel):
                         infos_values = np.mean(mb_infos_vals, axis=0)
 
                     callback.on_rollout_start()
-
 
                 episode_rewards[-1] += reward_
                 if done:

@@ -96,7 +96,7 @@ def test_callbacks(model_class):
     custom_callback.validate(allowed_failures=allowed_failures)
 
     # Automatic wrapping, old way of doing callbacks
-    model.learn(200, callback=lambda _locals, _globals : True)
+    model.learn(200, callback=lambda _locals, _globals: True)
 
     # Cleanup
     if os.path.exists(LOG_FOLDER):

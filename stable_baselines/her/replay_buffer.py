@@ -95,7 +95,6 @@ class HindsightExperienceReplayWrapper(object):
     def __len__(self):
         return len(self.replay_buffer)
 
-
     def _sample_achieved_goal(self, episode_transitions, transition_idx):
         """
         Sample an achieved goal according to the sampling strategy.

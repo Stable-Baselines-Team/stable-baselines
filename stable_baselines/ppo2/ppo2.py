@@ -12,6 +12,7 @@ from stable_baselines.common.schedules import get_schedule_fn
 from stable_baselines.common.tf_util import total_episode_reward_logger
 from stable_baselines.common.math_util import safe_mean
 
+
 class PPO2(ActorCriticRLModel):
     """
     Proximal Policy Optimization algorithm (GPU version).
@@ -171,7 +172,6 @@ class PPO2(ActorCriticRLModel):
                         vpred_clipped = self.old_vpred_ph + \
                             tf.clip_by_value(train_model.value_flat - self.old_vpred_ph,
                                              - self.clip_range_vf_ph, self.clip_range_vf_ph)
-
 
                     vf_losses1 = tf.square(vpred - self.rewards_ph)
                     vf_losses2 = tf.square(vpred_clipped - self.rewards_ph)

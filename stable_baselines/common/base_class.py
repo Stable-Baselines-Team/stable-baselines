@@ -878,7 +878,7 @@ class ActorCriticRLModel(BaseRLModel):
                 std = np.exp(logstd)
 
                 n_elts = np.prod(mean.shape[1:])  # first dimension is batch size
-                log_normalizer = n_elts/2 * np.log(2 * np.pi) + 1/2 * np.sum(logstd, axis=1)
+                log_normalizer = n_elts / 2 * np.log(2 * np.pi) + 0.5 * np.sum(logstd, axis=1)
 
                 # Diagonal Gaussian action probability, for every action
                 logprob = -np.sum(np.square(actions - mean) / (2 * std), axis=1) - log_normalizer
@@ -1032,6 +1032,7 @@ class OffPolicyRLModel(BaseRLModel):
         model.load_parameters(params)
 
         return model
+
 
 class _UnvecWrapper(VecEnvWrapper):
     def __init__(self, venv):

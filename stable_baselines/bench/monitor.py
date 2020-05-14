@@ -24,6 +24,7 @@ class Monitor(gym.Wrapper):
     """
     EXT = "monitor.csv"
     file_handler = None
+
     def __init__(self,
                  env: gym.Env,
                  filename: Optional[str],

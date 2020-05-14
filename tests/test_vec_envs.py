@@ -92,7 +92,6 @@ def test_vecenv_custom_calls(vec_env_class, vec_env_wrapper):
     assert (env_method_subset[1] == np.ones((1, 3))).all()
     assert len(env_method_subset) == 2
 
-
     # Test to change value for all the environments
     setattr_result = vec_env.set_attr('current_step', 42, indices=None)
     getattr_result = vec_env.get_attr('current_step')
@@ -192,6 +191,7 @@ SPACES = collections.OrderedDict([
     ('multibinary', gym.spaces.MultiBinary(3)),
     ('continuous', gym.spaces.Box(low=np.zeros(2), high=np.ones(2))),
 ])
+
 
 def check_vecenv_spaces(vec_env_class, space, obs_assert):
     """Helper method to check observation spaces in vectorized environments."""
@@ -301,10 +301,12 @@ class CustomWrapperB(VecNormalize):
     def name_test(self):
         return self.__class__
 
+
 class CustomWrapperBB(CustomWrapperB):
     def __init__(self, venv):
         CustomWrapperB.__init__(self, venv)
         self.var_bb = 'bb'
+
 
 def test_vecenv_wrapper_getattr():
     def make_env():

@@ -829,7 +829,6 @@ class DDPG(OffPolicyRLModel):
             episode_rewards_history = deque(maxlen=100)
             episode_successes = []
 
-
             with self.sess.as_default(), self.graph.as_default():
                 # Prepare everything.
                 self._reset()

@@ -37,6 +37,7 @@ def test_tensorboard(model_name):
     assert os.path.isdir(TENSORBOARD_DIR + logname + "_1")
     assert not os.path.isdir(TENSORBOARD_DIR + logname + "_2")
 
+
 @pytest.mark.parametrize("model_name", MODEL_DICT.keys())
 def test_multiple_runs(model_name):
     logname = "tb_multiple_runs_" + model_name
