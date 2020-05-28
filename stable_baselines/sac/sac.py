@@ -258,8 +258,8 @@ class SAC(OffPolicyRLModel):
                     value_optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate_ph)
                     values_params = tf_util.get_trainable_vars('model/values_fn')
 
-                    source_params = tf_util.get_trainable_vars("model/values_fn/vf")
-                    target_params = tf_util.get_trainable_vars("target/values_fn/vf")
+                    source_params = tf_util.get_trainable_vars("model/values_fn")
+                    target_params = tf_util.get_trainable_vars("target/values_fn")
 
                     # Polyak averaging for target variables
                     self.target_update_op = [
@@ -304,7 +304,7 @@ class SAC(OffPolicyRLModel):
 
                 # Retrieve parameters that must be saved
                 self.params = tf_util.get_trainable_vars("model")
-                self.target_params = tf_util.get_trainable_vars("target/values_fn/vf")
+                self.target_params = tf_util.get_trainable_vars("target/values_fn")
 
                 # Initialize Variables and target network
                 with self.sess.as_default():

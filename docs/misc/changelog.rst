@@ -28,6 +28,7 @@ Bug Fixes:
 - Partially fix tensorboard indexing for PPO2 (@enderdead)
 - Fixed potential bug in ``DummyVecEnv`` where ``copy()`` was used instead of ``deepcopy()``
 - Fixed a bug in ``GAIL`` where the dataloader was not available after saving, causing an error when using ``CheckpointCallback``
+- Fixed a bug in ``SAC`` where any convolutional layers were not included in the target network parameters.
 
 Deprecations:
 ^^^^^^^^^^^^^
