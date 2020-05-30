@@ -16,6 +16,7 @@ New Features:
 ^^^^^^^^^^^^^
 - Added momentum parameter to A2C for the embedded RMSPropOptimizer (@kantneel)
 - ActionNoise is now an abstract base class and implements ``__call__``, ``NormalActionNoise`` and ``OrnsteinUhlenbeckActionNoise`` have return types (@solliet)
+- HER now passes info dictionary to compute_reward, allowing for the computation of rewards that are independent of the goal (@tirafesi)
 
 Bug Fixes:
 ^^^^^^^^^^
