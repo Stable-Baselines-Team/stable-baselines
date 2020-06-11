@@ -54,6 +54,7 @@ Documentation:
 - Fixed ``train_mountaincar`` description
 - Added imitation baselines project
 - Updated install instructions
+- Added Slime Volleyball project (@hardmaru)
 
 
 Release 2.10.0 (2020-03-11)
@@ -710,4 +711,4 @@ Thanks to @bjmuld @iambenzo @iandanforth @r7vme @brendenpetersen @huvar @abhiskk
 @Miffyli @dwiel @miguelrass @qxcv @jaberkow @eavelardev @ruifeng96150 @pedrohbtp @srivatsankrishnan @evilsocket
 @MarvineGothic @jdossgollin @SyllogismRXS @rusu24edward @jbulow @Antymon @seheevic @justinkterry @edbeeching
 @flodorner @KuKuXia @NeoExtended @solliet @mmcenta @richardwu @tirafesi @caburu @johannes-dornheim @kvenkman @aakash94
-@enderdead
+@enderdead @hardmaru
