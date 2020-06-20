@@ -33,6 +33,7 @@ Bug Fixes:
 - Fixed a bug in ``SAC`` where any convolutional layers were not included in the target network parameters.
 - Fixed ``render()`` method for ``VecEnvs``
 - Fixed ``seed()``` method for ``SubprocVecEnv``
+- Fixed a bug in the ``close()`` method of ``SubprocVecEnv``, causing wrappers further down in the wrapper stack to not be closed. (@NeoExtended)
 
 Deprecations:
 ^^^^^^^^^^^^^
