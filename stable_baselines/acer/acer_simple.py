@@ -576,7 +576,7 @@ class ACER(ActorCriticRLModel):
                 callback.on_rollout_start()
 
                 enc_obs, obs, actions, rewards, mus, dones, masks = self.runner.run(callback)
-
+                callback.update_locals(locals())
                 callback.on_rollout_end()
 
                 # Early stopping due to the callback
@@ -738,6 +738,7 @@ class _Runner(AbstractEnvRunner):
 
             if self.callback is not None:
                 # Abort training early
+                self.callback.update_locals(locals())
                 if self.callback.on_step() is False:
                     self.continue_training = False
                     # Return dummy values

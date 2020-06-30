@@ -413,6 +413,7 @@ class SAC(OffPolicyRLModel):
 
                 # Only stop training if return value is False, not when it is None. This is for backwards
                 # compatibility with callbacks that have no return statement.
+                callback.update_locals(locals())
                 if callback.on_step() is False:
                     break
 

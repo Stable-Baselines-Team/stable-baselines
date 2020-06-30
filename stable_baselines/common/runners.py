@@ -116,6 +116,7 @@ def traj_segment_generator(policy, env, horizon, reward_giver=None, gail=False, 
         # before returning segment [0, T-1] so we get the correct
         # terminal value
         if step > 0 and step % horizon == 0:
+            callback.update_locals(locals())
             callback.on_rollout_end()
             yield {
                     "observations": observations,
@@ -160,6 +161,7 @@ def traj_segment_generator(policy, env, horizon, reward_giver=None, gail=False, 
             true_reward = reward
 
         if callback is not None:
+            callback.update_locals(locals())
             if callback.on_step() is False:
                 # We have to return everything so pytype does not complain
                 yield {

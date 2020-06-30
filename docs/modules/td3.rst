@@ -160,3 +160,55 @@ You can easily define a custom architecture for the policy network:
   model = TD3(CustomTD3Policy, env, action_noise=action_noise, verbose=1)
   # Train the agent
   model.learn(total_timesteps=80000)
+
+
+Callbacks - Accessible Variables
+--------------------------------
+
+Depending on initialization parameters and timestep, different variables are accessible.
+Variables accessible "From timestep X" are variables that can be accessed when
+``self.timestep==X`` in the ``on_step`` function.
+
++--------------------------------+-----------------------------------------------------+
+|Variable                        |                                         Availability|
++================================+=====================================================+
+|- self                          |From timestep 1                                      |
+|- total_timesteps               |                                                     |
+|- callback                      |                                                     |
+|- log_interval                  |                                                     |
+|- tb_log_name                   |                                                     |
+|- reset_num_timesteps           |                                                     |
+|- replay_wrapper                |                                                     |
+|- new_tb_log                    |                                                     |
+|- writer                        |                                                     |
+|- current_lr                    |                                                     |
+|- start_time                    |                                                     |
+|- episode_rewards               |                                                     |
+|- episode_successes             |                                                     |
+|- obs                           |                                                     |
+|- n_updates                     |                                                     |
+|- infos_values                  |                                                     |
+|- step                          |                                                     |
+|- unscaled_action               |                                                     |
+|- action                        |                                                     |
+|- new_obs                       |                                                     |
+|- reward                        |                                                     |
+|- done                          |                                                     |
+|- info                          |                                                     |
++--------------------------------+-----------------------------------------------------+
+|- obs\_                         |From timestep 2                                      |
+|- new_obs\_                     |                                                     |
+|- reward\_                      |                                                     |
+|- maybe_ep_info                 |                                                     |
+|- mean_reward                   |                                                     |
+|- num_episodes                  |                                                     |
++--------------------------------+-----------------------------------------------------+
+|- mb_infos_vals                 |After timestep train_freq steps                      |
+|- grad_step                     |                                                     |
++--------------------------------+-----------------------------------------------------+
+|- frac                          |After timestep train_freq steps                      |
+|                                |After at least batch_size and learning_starts steps  |
++--------------------------------+-----------------------------------------------------+
+|- maybe_is_success              |After the first episode                              |
++--------------------------------+-----------------------------------------------------+
+

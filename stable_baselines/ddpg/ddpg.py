@@ -894,7 +894,7 @@ class DDPG(OffPolicyRLModel):
                             new_obs, reward, done, info = self.env.step(unscaled_action)
 
                             self.num_timesteps += 1
-
+                            callback.update_locals(locals())
                             if callback.on_step() is False:
                                 callback.on_training_end()
                                 return self

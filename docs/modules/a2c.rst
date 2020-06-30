@@ -75,3 +75,53 @@ Parameters
 .. autoclass:: A2C
   :members:
   :inherited-members:
+
+
+Callbacks - Accessible Variables
+--------------------------------
+
+Depending on initialization parameters and timestep, different variables are accessible.
+Variables accessible "From timestep X" are variables that can be accessed when
+``self.timestep==X`` in the ``on_step`` function.
+
+      +--------------------------------+-----------------------------------------------------+
+      |Variable                        |                                         Availability|
+      +================================+=====================================================+
+      |- self                          |From timestep 1                                      |
+      |- total_timesteps               |                                                     |
+      |- callback                      |                                                     |
+      |- log_interval                  |                                                     |
+      |- tb_log_name                   |                                                     |
+      |- reset_num_timesteps           |                                                     |
+      |- new_tb_log                    |                                                     |
+      |- writer                        |                                                     |
+      |- t_start                       |                                                     |
+      |- mb_obs                        |                                                     |
+      |- mb_rewards                    |                                                     |
+      |- mb_actions                    |                                                     |
+      |- mb_values                     |                                                     |
+      |- mb_dones                      |                                                     |
+      |- mb_states                     |                                                     |
+      |- ep_infos                      |                                                     |
+      |- actions                       |                                                     |
+      |- values                        |                                                     |
+      |- states                        |                                                     |
+      |- clipped_actions               |                                                     |
+      |- obs                           |                                                     |
+      |- rewards                       |                                                     |
+      |- dones                         |                                                     |
+      |- infos                         |                                                     |
+      +--------------------------------+-----------------------------------------------------+
+      |- info                          |From timestep 2                                      |
+      |- maybe_ep_info                 |                                                     |
+      +--------------------------------+-----------------------------------------------------+
+      |- update                        |From timestep ``n_step+1``                           |
+      |- rollout                       |                                                     |
+      |- masks                         |                                                     |
+      |- true_reward                   |                                                     |
+      +--------------------------------+-----------------------------------------------------+
+      |- value_loss                    |From timestep ``2 * n_step+1``                       |
+      |- policy_entropy                |                                                     |
+      |- n_seconds                     |                                                     |
+      |- fps                           |                                                     |
+      +--------------------------------+-----------------------------------------------------+

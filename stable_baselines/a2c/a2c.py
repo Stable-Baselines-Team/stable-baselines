@@ -263,7 +263,7 @@ class A2C(ActorCriticRLModel):
                 rollout = self.runner.run(callback)
                 # unpack
                 obs, states, rewards, masks, actions, values, ep_infos, true_reward = rollout
-
+                callback.update_locals(locals())
                 callback.on_rollout_end()
 
                 # Early stopping due to the callback
@@ -364,6 +364,7 @@ class A2CRunner(AbstractEnvRunner):
 
             if self.callback is not None:
                 # Abort training early
+                self.callback.update_locals(locals())
                 if self.callback.on_step() is False:
                     self.continue_training = False
                     # Return dummy values

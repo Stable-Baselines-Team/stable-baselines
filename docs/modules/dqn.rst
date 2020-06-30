@@ -119,7 +119,7 @@ Parameters
 .. _deepq_policies:
 
 DQN Policies
--------------
+------------
 
 .. autoclass:: MlpPolicy
   :members:
@@ -170,3 +170,57 @@ You can easily define a custom architecture for the policy network:
   model = DQN(CustomDQNPolicy, env, verbose=1)
   # Train the agent
   model.learn(total_timesteps=100000)
+
+
+Callbacks - Accessible Variables 
+--------------------------------
+
+Depending on initialization parameters and timestep, different variables are accessible.
+Variables accessible from "timestep X" are variables that can be accessed when
+``self.timestep==X`` from the ``on_step`` function.
+
+    +--------------------------------+-----------------------------------------------------+
+    |Variable                        |                                         Availability|
+    +================================+=====================================================+
+    |- self                          |From timestep 1                                      |
+    |- total_timesteps               |                                                     |
+    |- callback                      |                                                     |
+    |- log_interval                  |                                                     |
+    |- tb_log_name                   |                                                     |
+    |- reset_num_timesteps           |                                                     |
+    |- replay_wrapper                |                                                     |
+    |- new_tb_log                    |                                                     |
+    |- writer                        |                                                     |
+    |- episode_rewards               |                                                     |
+    |- episode_successes             |                                                     |
+    |- reset                         |                                                     |
+    |- obs                           |                                                     |
+    |- _                             |                                                     |
+    |- kwargs                        |                                                     |
+    |- update_eps                    |                                                     |
+    |- update_param_noise_threshold  |                                                     |
+    |- action                        |                                                     |
+    |- env_action                    |                                                     |
+    |- new_obs                       |                                                     |
+    |- rew                           |                                                     |
+    |- done                          |                                                     |
+    |- info                          |                                                     |
+    +--------------------------------+-----------------------------------------------------+
+    |- obs\_                         |From timestep 2                                      |
+    |- new_obs\_                     |                                                     |
+    |- reward\_                      |                                                     |
+    |- can_sample                    |                                                     |
+    |- mean_100ep_reward             |                                                     |
+    |- num_episodes                  |                                                     |
+    +--------------------------------+-----------------------------------------------------+
+    |- maybe_is_success              |After the first episode                              |
+    +--------------------------------+-----------------------------------------------------+
+    |- obses_t                       |After at least ``max(batch_size, learning_starts)``  |
+    |- actions                       |and every `train_freq` steps                         |
+    |- rewards                       |                                                     |
+    |- obses_tp1                     |                                                     |
+    |- dones                         |                                                     |
+    |- weights                       |                                                     |
+    |- batch_idxes                   |                                                     |
+    |- td_errors                     |                                                     |
+    +--------------------------------+-----------------------------------------------------+

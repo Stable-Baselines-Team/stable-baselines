@@ -221,6 +221,7 @@ class DQN(OffPolicyRLModel):
                 self.num_timesteps += 1
 
                 # Stop training if return value is False
+                callback.update_locals(locals())
                 if callback.on_step() is False:
                     break
 

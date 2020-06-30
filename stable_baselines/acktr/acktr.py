@@ -343,7 +343,7 @@ class ACKTR(ActorCriticRLModel):
                     rollout = self.runner.run(callback)
                     obs, states, returns, masks, actions, values, ep_infos, true_reward = rollout
                 # pytype:enable=bad-unpacking
-
+                callback.update_locals(locals())
                 callback.on_rollout_end()
 
                 # Early stopping due to the callback
