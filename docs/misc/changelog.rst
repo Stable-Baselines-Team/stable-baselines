@@ -60,6 +60,7 @@ Documentation:
 - Updated install instructions
 - Added Slime Volleyball project (@hardmaru)
 - Added a table of the variables accessible from the ``on_step`` function of the callbacks for each algorithm (@PartiallyTyped)
+- Fix typo in README.md (@ColinLeongUDRI)
 
 Release 2.10.0 (2020-03-11)
 ---------------------------
@@ -715,4 +716,4 @@ Thanks to @bjmuld @iambenzo @iandanforth @r7vme @brendenpetersen @huvar @abhiskk
 @Miffyli @dwiel @miguelrass @qxcv @jaberkow @eavelardev @ruifeng96150 @pedrohbtp @srivatsankrishnan @evilsocket
 @MarvineGothic @jdossgollin @SyllogismRXS @rusu24edward @jbulow @Antymon @seheevic @justinkterry @edbeeching
 @flodorner @KuKuXia @NeoExtended @PartiallyTyped @mmcenta @richardwu @tirafesi @caburu @johannes-dornheim @kvenkman @aakash94
-@enderdead @hardmaru @jbarsce
+@enderdead @hardmaru @jbarsce @ColinLeongUDRI

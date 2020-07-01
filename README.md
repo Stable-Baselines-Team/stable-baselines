@@ -65,7 +65,7 @@ Documentation: https://stable-baselines.readthedocs.io/en/master/guide/rl_zoo.ht
 
 ## Installation
 
-**Note:** Stabe-Baselines supports Tensorflow versions from 1.8.0 to 1.14.0. Support for Tensorflow 2 API is planned.
+**Note:** Stable-Baselines supports Tensorflow versions from 1.8.0 to 1.14.0. Support for Tensorflow 2 API is planned.
 
 ### Prerequisites
 Baselines requires python3 (>=3.5) with the development headers. You'll also need system packages CMake, OpenMPI and zlib. Those can be installed as follows
