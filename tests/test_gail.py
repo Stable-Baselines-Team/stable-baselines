@@ -8,7 +8,7 @@ import pytest
 from stable_baselines import (A2C, ACER, ACKTR, GAIL, DDPG, DQN, PPO1, PPO2,
                               TD3, TRPO, SAC)
 from stable_baselines.common.cmd_util import make_atari_env
-from stable_baselines.common.vec_env import VecFrameStack
+from stable_baselines.common.vec_env import VecFrameStack, DummyVecEnv
 from stable_baselines.common.evaluation import evaluate_policy
 from stable_baselines.common.callbacks import CheckpointCallback
 from stable_baselines.gail import ExpertDataset, generate_expert_traj
@@ -148,3 +148,12 @@ def test_dataset_param_validation():
     traj_data = np.load(EXPERT_PATH_PENDULUM)
     with pytest.raises(ValueError):
         ExpertDataset(traj_data=traj_data, expert_path=EXPERT_PATH_PENDULUM)
+
+
+def test_generate_vec_env_non_image_observation():
+    env = DummyVecEnv([lambda: gym.make('CartPole-v1')] * 2)
+
+    model = PPO2('MlpPolicy', env)
+    model.learn(total_timesteps=5000)
+
+    generate_expert_traj(model, save_path='.', n_timesteps=0, n_episodes=5)
