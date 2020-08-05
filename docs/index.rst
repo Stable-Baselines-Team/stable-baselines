@@ -117,8 +117,8 @@ To cite this project in publications:
 Contributing
 ------------
 
-To any interested in making the rl baselines better, there is still some improvements
-that needs to be done.
+To any interested in making the rl baselines better, there are still some improvements
+that need to be done.
 A full TODO list is available in the `roadmap <https://github.com/hill-a/stable-baselines/projects/1>`_.
 
 If you want to contribute, please read `CONTRIBUTING.md <https://github.com/hill-a/stable-baselines/blob/master/CONTRIBUTING.md>`_ first.

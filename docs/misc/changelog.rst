@@ -6,8 +6,10 @@ Changelog
 For download links, please look at `Github release page <https://github.com/hill-a/stable-baselines/releases>`_.
 
 
-Pre-Release 2.10.1a1 (WIP)
+Release 2.10.1 (2020-08-05)
 ---------------------------
+
+**Bug fixes release**
 
 Breaking Changes:
 ^^^^^^^^^^^^^^^^^
