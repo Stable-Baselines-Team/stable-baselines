@@ -7,6 +7,14 @@ This is a list of projects using stable-baselines.
 Please tell us, if you want your project to appear on this page ;)
 
 
+Stable Baselines for TensorFlow 2
+---------------------------------
+A fork of the original stable-baselines repo that works with TF2.x.
+
+| Author: Sophia Gu (@sophiagu)
+| Github repo: https://github.com/sophiagu/stable-baselines-tf2
+
+
 Slime Volleyball Gym Environment
 --------------------------------
 A simple environment for benchmarking single and multi-agent reinforcement learning algorithms on a clone of the Slime Volleyball game. Only dependencies are gym and numpy. Both state and pixel observation environments are available. The motivation of this environment is to easily enable trained agents to play against each other, and also facilitate the training of agents directly in a multi-agent setting, thus adding an extra dimension for evaluating an agent's performance.
