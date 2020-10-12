@@ -15,6 +15,7 @@ Breaking Changes:
 
 New Features:
 ^^^^^^^^^^^^^
+- EvalCallback now works also for recurrent policies (@mily20001)
 
 Bug Fixes:
 ^^^^^^^^^^
@@ -739,7 +740,7 @@ Contributors (since v2.0.0):
 ----------------------------
 In random order...
 
-Thanks to @bjmuld @iambenzo @iandanforth @r7vme @brendenpetersen @huvar @abhiskk @JohannesAck
+Thanks to @bjmuld @iambenzo @iandanforth @r7vme @brendenpetersen @huvar @abhiskk @JohannesAck @mily20001
 @EliasHasle @mrakgr @Bleyddyn @antoine-galataud @junhyeokahn @AdamGleave @keshaviyengar @tperol
 @XMaster96 @kantneel @Pastafarianist @GerardMaggiolino @PatrickWalter214 @yutingsz @sc420 @Aaahh @billtubbs
 @Miffyli @dwiel @miguelrass @qxcv @jaberkow @eavelardev @ruifeng96150 @pedrohbtp @srivatsankrishnan @evilsocket

@@ -42,17 +42,29 @@ def evaluate_policy(
     if isinstance(env, VecEnv):
         assert env.num_envs == 1, "You must pass only one environment when using this function"
 
+    is_recurrent = model.policy.recurrent
+
     episode_rewards, episode_lengths = [], []
     for i in range(n_eval_episodes):
         # Avoid double reset, as VecEnv are reset automatically
         if not isinstance(env, VecEnv) or i == 0:
             obs = env.reset()
+            # Because recurrent policies need the same observation space during training and evaluation, we need to pad
+            # observation to match training shape. See https://github.com/hill-a/stable-baselines/issues/1015
+            if is_recurrent:
+                zero_completed_obs = np.zeros((model.n_envs,) + model.observation_space.shape)
+                zero_completed_obs[0, :] = obs
+                obs = zero_completed_obs
         done, state = False, None
         episode_reward = 0.0
         episode_length = 0
         while not done:
             action, state = model.predict(obs, state=state, deterministic=deterministic)
-            obs, reward, done, _info = env.step(action)
+            new_obs, reward, done, _info = env.step(action)
+            if is_recurrent:
+                obs[0, :] = new_obs
+            else:
+                obs = new_obs
             episode_reward += reward
             if callback is not None:
                 callback(locals(), globals())

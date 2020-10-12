@@ -4,6 +4,7 @@ import shutil
 import pytest
 
 from stable_baselines import A2C, ACKTR, ACER, DQN, DDPG, PPO1, PPO2, SAC, TD3, TRPO
+from stable_baselines.common import make_vec_env
 from stable_baselines.common.callbacks import (CallbackList, CheckpointCallback, EvalCallback,
     EveryNTimesteps, StopTrainingOnRewardThreshold, BaseCallback)
 
@@ -97,6 +98,30 @@ def test_callbacks(model_class):
 
     # Automatic wrapping, old way of doing callbacks
     model.learn(200, callback=lambda _locals, _globals: True)
+
+    # Cleanup
+    if os.path.exists(LOG_FOLDER):
+        shutil.rmtree(LOG_FOLDER)
+
+
+def test_recurrent_eval_callback():
+    env_id = 'Pendulum-v0'
+
+    # Create envs
+    env = make_vec_env(env_id, n_envs=4)
+    eval_env = make_vec_env(env_id, n_envs=1)
+
+    # Create RL model
+    model = PPO2('MlpLstmPolicy', env)
+
+    # Stop training if the performance is good enough
+    callback_on_best = StopTrainingOnRewardThreshold(reward_threshold=-1200, verbose=1)
+
+    eval_callback = EvalCallback(eval_env, callback_on_new_best=callback_on_best,
+                                 best_model_save_path=LOG_FOLDER,
+                                 log_path=LOG_FOLDER, eval_freq=100)
+
+    model.learn(500, callback=eval_callback)
 
     # Cleanup
     if os.path.exists(LOG_FOLDER):
