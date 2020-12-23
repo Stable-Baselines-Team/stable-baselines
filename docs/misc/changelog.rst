@@ -6,7 +6,7 @@ Changelog
 For download links, please look at `Github release page <https://github.com/hill-a/stable-baselines/releases>`_.
 
 
-Pre-Release 2.10.2a0 (WIP)
+Pre-Release 2.10.2a1 (WIP)
 ---------------------------
 
 
@@ -19,6 +19,8 @@ New Features:
 
 Bug Fixes:
 ^^^^^^^^^^
+- Fixed calculation of the log probability of Diagonal Gaussian distribution
+  when using ``action_probability()`` method (@SVJayanthi, @sunshineclt)
 
 Deprecations:
 ^^^^^^^^^^^^^
@@ -746,4 +748,4 @@ Thanks to @bjmuld @iambenzo @iandanforth @r7vme @brendenpetersen @huvar @abhiskk
 @Miffyli @dwiel @miguelrass @qxcv @jaberkow @eavelardev @ruifeng96150 @pedrohbtp @srivatsankrishnan @evilsocket
 @MarvineGothic @jdossgollin @SyllogismRXS @rusu24edward @jbulow @Antymon @seheevic @justinkterry @edbeeching
 @flodorner @KuKuXia @NeoExtended @PartiallyTyped @mmcenta @richardwu @tirafesi @caburu @johannes-dornheim @kvenkman @aakash94
-@enderdead @hardmaru @jbarsce @ColinLeongUDRI @shwang @YangRui2015 @sophiagu @OGordon100
+@enderdead @hardmaru @jbarsce @ColinLeongUDRI @shwang @YangRui2015 @sophiagu @OGordon100 @SVJayanthi @sunshineclt
