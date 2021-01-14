@@ -21,6 +21,7 @@ Bug Fixes:
 ^^^^^^^^^^
 - Fixed calculation of the log probability of Diagonal Gaussian distribution
   when using ``action_probability()`` method (@SVJayanthi, @sunshineclt)
+- Fixed docker image build (@anj1)
 
 Deprecations:
 ^^^^^^^^^^^^^
@@ -749,3 +750,4 @@ Thanks to @bjmuld @iambenzo @iandanforth @r7vme @brendenpetersen @huvar @abhiskk
 @MarvineGothic @jdossgollin @SyllogismRXS @rusu24edward @jbulow @Antymon @seheevic @justinkterry @edbeeching
 @flodorner @KuKuXia @NeoExtended @PartiallyTyped @mmcenta @richardwu @tirafesi @caburu @johannes-dornheim @kvenkman @aakash94
 @enderdead @hardmaru @jbarsce @ColinLeongUDRI @shwang @YangRui2015 @sophiagu @OGordon100 @SVJayanthi @sunshineclt
+@anj1
