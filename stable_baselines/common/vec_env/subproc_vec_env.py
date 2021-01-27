@@ -1,3 +1,4 @@
+import os
 import multiprocessing
 from collections import OrderedDict
 from typing import Sequence
@@ -76,6 +77,13 @@ class SubprocVecEnv(VecEnv):
         self.waiting = False
         self.closed = False
         n_envs = len(env_fns)
+
+        # In some cases (like on GitHub workflow machine when running tests),
+        # "forkserver" method results in an "connection error" (probably due to mpi)
+        # We allow to bypass the default start method if an environment variable
+        # is specified by the user
+        if start_method is None:
+            start_method = os.environ.get("DEFAULT_START_METHOD")
 
         if start_method is None:
             # Fork is not a thread safe method (see issue #217)

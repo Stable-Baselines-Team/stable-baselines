@@ -39,4 +39,5 @@ jobs:
         make type
     - name: Test with pytest
       run: |
-        make pytest
+        # Prevent issues with multiprocessing
+        DEFAULT_START_METHOD=fork make pytest
