@@ -3,7 +3,7 @@ import pytest
 from stable_baselines import A2C, ACER, ACKTR, DQN, DDPG, PPO1, PPO2, SAC, TRPO, TD3
 from stable_baselines.common.noise import NormalActionNoise
 
-N_STEPS_TRAINING = 5000
+N_STEPS_TRAINING = 300
 SEED = 0
 
 
@@ -27,7 +27,7 @@ def test_deterministic_training_common(algo):
         model.learn(N_STEPS_TRAINING)
         env = model.get_env()
         obs = env.reset()
-        for _ in range(100):
+        for _ in range(20):
             action, _ = model.predict(obs, deterministic=False)
             obs, reward, _, _ = env.step(action)
             results[i].append(action)
