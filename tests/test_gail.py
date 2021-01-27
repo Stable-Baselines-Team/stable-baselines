@@ -35,10 +35,10 @@ def test_gail(tmp_path, expert_env):
     model = GAIL('MlpPolicy', env, adversary_entcoeff=0.0, lam=0.92, max_kl=0.001,
                  expert_dataset=dataset, hidden_size_adversary=64, verbose=0)
 
-    model.learn(1000)
+    model.learn(300)
     model.save(str(tmp_path / "GAIL-{}".format(env_id)))
     model = model.load(str(tmp_path / "GAIL-{}".format(env_id)), env=env)
-    model.learn(1000)
+    model.learn(300)
 
     evaluate_policy(model, env, n_eval_episodes=5)
     del dataset, model
@@ -60,7 +60,7 @@ def test_generate(tmp_path, generate_env):
     else:
         model = model(policy, env_name, verbose=0)
 
-    dataset = generate_expert_traj(model, str(tmp_path / 'expert'), n_timesteps=1000, n_episodes=n_episodes,
+    dataset = generate_expert_traj(model, str(tmp_path / 'expert'), n_timesteps=300, n_episodes=n_episodes,
                                    image_folder=str(tmp_path / 'test_recorded_images'))
 
     assert set(dataset.keys()).issuperset(['actions', 'obs', 'rewards', 'episode_returns', 'episode_starts'])
@@ -93,7 +93,7 @@ def test_generate_callable(tmp_path):
 
 def test_pretrain_images(tmp_path):
     env = make_atari_env("PongNoFrameskip-v4", num_env=1, seed=0)
-    env = VecFrameStack(env, n_stack=4)
+    env = VecFrameStack(env, n_stack=3)
     model = PPO2('CnnPolicy', env)
     generate_expert_traj(model, str(tmp_path / 'expert_pong'), n_timesteps=0, n_episodes=1,
                          image_folder=str(tmp_path / 'pretrain_recorded_images'))
@@ -112,8 +112,8 @@ def test_gail_callback(tmp_path):
     dataset = ExpertDataset(expert_path=EXPERT_PATH_PENDULUM, traj_limitation=10,
                             sequential_preprocessing=True, verbose=0)
     model = GAIL("MlpPolicy", "Pendulum-v0", dataset)
-    checkpoint_callback = CheckpointCallback(save_freq=500, save_path=str(tmp_path / 'logs/gail/'), name_prefix='gail')
-    model.learn(total_timesteps=1000, callback=checkpoint_callback)
+    checkpoint_callback = CheckpointCallback(save_freq=150, save_path=str(tmp_path / 'logs/gail/'), name_prefix='gail')
+    model.learn(total_timesteps=300, callback=checkpoint_callback)
     shutil.rmtree(str(tmp_path / 'logs/gail/'))
     del dataset, model
 
@@ -126,7 +126,7 @@ def test_behavior_cloning_box(tmp_path, model_class):
     dataset = ExpertDataset(expert_path=EXPERT_PATH_PENDULUM, traj_limitation=10,
                             sequential_preprocessing=True, verbose=0)
     model = model_class("MlpPolicy", "Pendulum-v0")
-    model.pretrain(dataset, n_epochs=20)
+    model.pretrain(dataset, n_epochs=5)
     model.save(str(tmp_path / "test-pretrain"))
     del dataset, model
 
@@ -136,7 +136,7 @@ def test_behavior_cloning_discrete(tmp_path, model_class):
     dataset = ExpertDataset(expert_path=EXPERT_PATH_DISCRETE, traj_limitation=10,
                             sequential_preprocessing=True, verbose=0)
     model = model_class("MlpPolicy", "CartPole-v1")
-    model.pretrain(dataset, n_epochs=10)
+    model.pretrain(dataset, n_epochs=5)
     model.save(str(tmp_path / "test-pretrain"))
     del dataset, model
 
@@ -154,6 +154,6 @@ def test_generate_vec_env_non_image_observation():
     env = DummyVecEnv([lambda: gym.make('CartPole-v1')] * 2)
 
     model = PPO2('MlpPolicy', env)
-    model.learn(total_timesteps=5000)
+    model.learn(total_timesteps=300)
 
     generate_expert_traj(model, save_path='.', n_timesteps=0, n_episodes=5)

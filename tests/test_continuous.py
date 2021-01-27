@@ -16,7 +16,7 @@ from tests.test_common import _assert_eq
 
 
 N_EVAL_EPISODES = 20
-NUM_TIMESTEPS = 15000
+NUM_TIMESTEPS = 300
 
 MODEL_LIST = [
     A2C,
@@ -131,7 +131,7 @@ def test_model_manipulation(request, model_class):
 
 
 def test_ddpg():
-    args = ['--env-id', 'Pendulum-v0', '--num-timesteps', 1000, '--noise-type', 'ou_0.01']
+    args = ['--env-id', 'Pendulum-v0', '--num-timesteps', 300, '--noise-type', 'ou_0.01']
     args = list(map(str, args))
     return_code = subprocess.call(['python', '-m', 'stable_baselines.ddpg.main'] + args)
     _assert_eq(return_code, 0)
@@ -146,7 +146,7 @@ def test_ddpg_eval_env():
     model = DDPG("MlpPolicy", "Pendulum-v0", nb_rollout_steps=5,
                 nb_train_steps=2, nb_eval_steps=10,
                 eval_env=eval_env, verbose=0)
-    model.learn(1000)
+    model.learn(300)
 
 
 def test_ddpg_normalization():
@@ -157,7 +157,7 @@ def test_ddpg_normalization():
     model = DDPG('MlpPolicy', 'Pendulum-v0', memory_limit=50000, normalize_observations=True,
                  normalize_returns=True, nb_rollout_steps=128, nb_train_steps=1,
                  batch_size=64, param_noise=param_noise)
-    model.learn(1000)
+    model.learn(300)
     obs_rms_params = model.sess.run(model.obs_rms_params)
     ret_rms_params = model.sess.run(model.ret_rms_params)
     model.save('./test_ddpg.zip')
@@ -185,4 +185,4 @@ def test_ddpg_popart():
     model = DDPG('MlpPolicy', 'Pendulum-v0', memory_limit=50000, normalize_observations=True,
                  normalize_returns=True, nb_rollout_steps=128, nb_train_steps=1,
                  batch_size=64, action_noise=action_noise, enable_popart=True)
-    model.learn(1000)
+    model.learn(300)
