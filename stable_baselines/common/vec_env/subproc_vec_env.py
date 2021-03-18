@@ -85,11 +85,13 @@ class SubprocVecEnv(VecEnv):
         if start_method is None:
             start_method = os.environ.get("DEFAULT_START_METHOD")
 
-        # Fork is not a thread safe method (see issue #217)
-        # but is more user friendly (does not require to wrap the code in
-        # a `if __name__ == "__main__":`)
-        forkserver_available = 'forkserver' in multiprocessing.get_all_start_methods()
-        start_method = 'forkserver' if forkserver_available else 'spawn'
+        # No DEFAULT_START_METHOD was specified, start_method may still be None
+        if start_method is None:
+            # Fork is not a thread safe method (see issue #217)
+            # but is more user friendly (does not require to wrap the code in
+            # a `if __name__ == "__main__":`)
+            forkserver_available = 'forkserver' in multiprocessing.get_all_start_methods()
+            start_method = 'forkserver' if forkserver_available else 'spawn'
         ctx = multiprocessing.get_context(start_method)
 
         self.remotes, self.work_remotes = zip(*[ctx.Pipe(duplex=True) for _ in range(n_envs)])
