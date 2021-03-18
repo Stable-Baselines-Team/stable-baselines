@@ -113,7 +113,7 @@ def test_gail_callback(tmp_path):
                             sequential_preprocessing=True, verbose=0)
     model = GAIL("MlpPolicy", "Pendulum-v0", dataset)
     checkpoint_callback = CheckpointCallback(save_freq=150, save_path=str(tmp_path / 'logs/gail/'), name_prefix='gail')
-    model.learn(total_timesteps=300, callback=checkpoint_callback)
+    model.learn(total_timesteps=301, callback=checkpoint_callback)
     shutil.rmtree(str(tmp_path / 'logs/gail/'))
     del dataset, model
 

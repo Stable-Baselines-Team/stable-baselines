@@ -85,8 +85,10 @@ def test_model_manipulation(request, model_class, storage_method, store_format):
         # test action probability for given (obs, action) pair
         env = model.get_env()
         obs = env.reset()
-        observations = np.array([obs for _ in range(10)])
+        observations = np.array([env.step([env.action_space.sample()])[0] for _ in range(10)])
         observations = np.squeeze(observations)
+        selected_actions, _ = model.predict(observations, deterministic=True)
+
         actions = np.array([env.action_space.sample() for _ in range(10)])
         actions_probas = model.action_probability(observations, actions=actions)
         assert actions_probas.shape == (len(actions), 1), actions_probas.shape
@@ -116,23 +118,12 @@ def test_model_manipulation(request, model_class, storage_method, store_format):
         env = DummyVecEnv([lambda: IdentityEnv(10)])
         model.set_env(env)
 
-        # predict the same output before saving
-        # TODO: use pre-defined observations instead of reward
-        # env.envs[0].action_space.seed(0)
-        # loaded_mean_reward, _ = evaluate_policy(model, env, deterministic=True, n_eval_episodes=N_EVAL_EPISODES)
-        # Allow 10% diff
-        # assert abs((mean_reward - loaded_mean_reward) / mean_reward) < 0.1, "Error: the prediction seems to have changed between " \
-        #                                                                     "loading and saving"
+        # check if model still selects the same actions
+        new_selected_actions, _ = model.predict(observations, deterministic=True)
+        assert np.allclose(selected_actions, new_selected_actions, 1e-4)
 
         # learn post loading
         model.learn(total_timesteps=15)
-
-        # validate no reset post learning
-        # env.envs[0].action_space.seed(0)
-        # loaded_mean_reward, _ = evaluate_policy(model, env, deterministic=True, n_eval_episodes=N_EVAL_EPISODES)
-        #
-        # assert abs((mean_reward - loaded_mean_reward) / mean_reward) < 0.15, "Error: the prediction seems to have changed between " \
-        #                                                                     "pre learning and post learning"
 
         # predict new values
         evaluate_policy(model, env, n_eval_episodes=N_EVAL_EPISODES)
