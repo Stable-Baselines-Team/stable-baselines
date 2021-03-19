@@ -80,10 +80,10 @@ def test_lstm_policy(request, model_class, policy):
     try:
         # create and train
         if model_class == PPO2:
-            model = model_class(policy, 'CartPole-v1', nminibatches=1)
+            model = model_class(policy, 'CartPole-v1', nminibatches=1, n_steps=4)
         else:
-            model = model_class(policy, 'CartPole-v1')
-        model.learn(total_timesteps=100)
+            model = model_class(policy, 'CartPole-v1', n_steps=4)
+        model.learn(total_timesteps=15)
 
         env = model.get_env()
         evaluate_policy(model, env, n_eval_episodes=10)

@@ -121,7 +121,7 @@ def test_recurrent_eval_callback():
                                  best_model_save_path=LOG_FOLDER,
                                  log_path=LOG_FOLDER, eval_freq=100)
 
-    model.learn(500, callback=eval_callback)
+    model.learn(300, callback=eval_callback)
 
     # Cleanup
     if os.path.exists(LOG_FOLDER):

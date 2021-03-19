@@ -27,6 +27,7 @@ Deprecations:
 
 Others:
 ^^^^^^^
+- Faster tests, switched to GitHub CI
 
 Documentation:
 ^^^^^^^^^^^^^^

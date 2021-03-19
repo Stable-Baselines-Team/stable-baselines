@@ -23,7 +23,7 @@ MODEL_DICT = {
     'trpo': (TRPO, 'CartPole-v1'),
 }
 
-N_STEPS = 1000
+N_STEPS = 300
 
 
 @pytest.mark.parametrize("model_name", MODEL_DICT.keys())
