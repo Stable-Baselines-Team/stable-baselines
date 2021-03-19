@@ -40,7 +40,9 @@ jobs:
         mpirun --allow-run-as-root -np 2 python -m stable_baselines.common.mpi_adam
         mpirun --allow-run-as-root -np 2 python -m stable_baselines.ppo1.experiments.train_cartpole
         mpirun --allow-run-as-root -np 2 python -m stable_baselines.common.mpi_running_mean_std
-        mpirun --allow-run-as-root -np 2 python -c "from stable_baselines.common.mpi_moments import _helper_runningmeanstd; _helper_runningmeanstd()"
+        # MPI requires 3 processes to run the following code
+        # but will throw an error on GitHub CI as there is only two threads
+        # mpirun --allow-run-as-root -np 3 python -c "from stable_baselines.common.mpi_moments import _helper_runningmeanstd; _helper_runningmeanstd()"
 
     - name: Build the doc
       run: |
