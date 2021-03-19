@@ -1,5 +1,7 @@
 import subprocess
 
+import pytest
+
 from .test_common import _assert_eq
 
 
