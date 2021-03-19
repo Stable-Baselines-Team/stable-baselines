@@ -38,6 +38,9 @@ jobs:
         mpirun -h
         python -c "import mpi4py; print(mpi4py.__version__)"
         mpirun --allow-run-as-root -np 2 python -m stable_baselines.common.mpi_adam
+        mpirun --allow-run-as-root -np 2 python -m stable_baselines.ppo1.experiments.train_cartpole
+        mpirun --allow-run-as-root -np 2 python -m stable_baselines.common.mpi_running_mean_std
+        mpirun --allow-run-as-root -np 3 python -c "from stable_baselines.common.mpi_moments import _helper_runningmeanstd; _helper_runningmeanstd()"
 
     - name: Build the doc
       run: |
