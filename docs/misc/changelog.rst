@@ -21,6 +21,7 @@ Bug Fixes:
 ^^^^^^^^^^
 - Fixed calculation of the log probability of Diagonal Gaussian distribution
   when using ``action_probability()`` method (@SVJayanthi, @sunshineclt)
+- Fixed docker image build (@anj1)
 
 Deprecations:
 ^^^^^^^^^^^^^
@@ -549,12 +550,12 @@ Release 2.4.0 (2019-01-17)
 Release 2.3.0 (2018-12-05)
 --------------------------
 
-- added support for storing model in file like object. (thanks to @erniejunior)
+- added support for storing model in file like object. (thanks to @ernestum)
 - fixed wrong image detection when using tensorboard logging with DQN
 - fixed bug in ppo2 when passing non callable lr after loading
 - fixed tensorboard logging in ppo2 when nminibatches=1
-- added early stoppping via callback return value (@erniejunior)
-- added more flexible custom mlp policies (@erniejunior)
+- added early stoppping via callback return value (@ernestum)
+- added more flexible custom mlp policies (@ernestum)
 
 
 Release 2.2.1 (2018-11-18)
@@ -727,11 +728,11 @@ Maintainers
 -----------
 
 Stable-Baselines is currently maintained by `Ashley Hill`_ (aka @hill-a), `Antonin Raffin`_ (aka `@araffin`_),
-`Maximilian Ernestus`_ (aka @erniejunior), `Adam Gleave`_ (`@AdamGleave`_) and `Anssi Kanervisto`_ (aka `@Miffyli`_).
+`Maximilian Ernestus`_ (aka @ernestum), `Adam Gleave`_ (`@AdamGleave`_) and `Anssi Kanervisto`_ (aka `@Miffyli`_).
 
 .. _Ashley Hill: https://github.com/hill-a
 .. _Antonin Raffin: https://araffin.github.io/
-.. _Maximilian Ernestus: https://github.com/erniejunior
+.. _Maximilian Ernestus: https://github.com/ernestum
 .. _Adam Gleave: https://gleave.me/
 .. _@araffin: https://github.com/araffin
 .. _@AdamGleave: https://github.com/adamgleave
@@ -750,3 +751,4 @@ Thanks to @bjmuld @iambenzo @iandanforth @r7vme @brendenpetersen @huvar @abhiskk
 @MarvineGothic @jdossgollin @SyllogismRXS @rusu24edward @jbulow @Antymon @seheevic @justinkterry @edbeeching
 @flodorner @KuKuXia @NeoExtended @PartiallyTyped @mmcenta @richardwu @tirafesi @caburu @johannes-dornheim @kvenkman @aakash94
 @enderdead @hardmaru @jbarsce @ColinLeongUDRI @shwang @YangRui2015 @sophiagu @OGordon100 @SVJayanthi @sunshineclt
+@anj1
