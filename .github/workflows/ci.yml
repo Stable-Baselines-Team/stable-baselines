@@ -32,9 +32,13 @@ jobs:
         pip install .[mpi,tests,docs]
         # Use headless version
         pip install opencv-python-headless
+    - name: MPI
+      run: |
         # check MPI
         mpirun -h
         python -c "import mpi4py; print(mpi4py.__version__)"
+        mpirun --allow-run-as-root -np 2 python -m stable_baselines.common.mpi_adam
+
     - name: Build the doc
       run: |
         make doc
