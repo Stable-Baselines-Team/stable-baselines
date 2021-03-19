@@ -1,0 +1,56 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    # Skip CI if [ci skip] in the commit message
+    if: "! contains(toJSON(github.event.commits.*.message), '[ci skip]')"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.5, 3.6]  # 3.8 not supported yet by pytype
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        sudo apt-get install libopenmpi-dev
+        python -m pip install --upgrade pip
+        pip install wheel
+        pip install .[mpi,tests,docs]
+        # Use headless version
+        pip install opencv-python-headless
+    - name: MPI
+      run: |
+        # check MPI
+        mpirun -h
+        python -c "import mpi4py; print(mpi4py.__version__)"
+        mpirun --allow-run-as-root -np 2 python -m stable_baselines.common.mpi_adam
+        mpirun --allow-run-as-root -np 2 python -m stable_baselines.ppo1.experiments.train_cartpole
+        mpirun --allow-run-as-root -np 2 python -m stable_baselines.common.mpi_running_mean_std
+        # MPI requires 3 processes to run the following code
+        # but will throw an error on GitHub CI as there is only two threads
+        # mpirun --allow-run-as-root -np 3 python -c "from stable_baselines.common.mpi_moments import _helper_runningmeanstd; _helper_runningmeanstd()"
+
+    - name: Build the doc
+      run: |
+        make doc
+    - name: Type check
+      run: |
+        make type
+    - name: Test with pytest
+      run: |
+        # Prevent issues with multiprocessing
+        DEFAULT_START_METHOD=fork make pytest

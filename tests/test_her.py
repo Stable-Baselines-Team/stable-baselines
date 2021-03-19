@@ -42,7 +42,7 @@ def test_her(model_class, goal_selection_strategy, discrete_obs_space):
     kwargs = {'random_exploration': 0.1} if model_class in [DDPG, SAC, TD3] else {}
     model = HER('MlpPolicy', env, model_class, n_sampled_goal=4, goal_selection_strategy=goal_selection_strategy,
                 verbose=0, **kwargs)
-    model.learn(1000)
+    model.learn(150)
 
 
 @pytest.mark.parametrize('model_class', [DDPG, SAC, DQN, TD3])
@@ -64,7 +64,7 @@ def test_long_episode(model_class):
 
     model = HER('MlpPolicy', env, model_class, n_sampled_goal=4, goal_selection_strategy='future',
                 verbose=0, **kwargs)
-    model.learn(200)
+    model.learn(100)
 
 
 @pytest.mark.parametrize('goal_selection_strategy', [list(KEY_TO_GOAL_STRATEGY.keys())[0]])
@@ -75,9 +75,9 @@ def test_model_manipulation(model_class, goal_selection_strategy):
 
     model = HER('MlpPolicy', env, model_class, n_sampled_goal=3, goal_selection_strategy=goal_selection_strategy,
                 verbose=0)
-    model.learn(1000)
+    model.learn(150)
 
-    model_predict(model, env, n_steps=100, additional_check=None)
+    model_predict(model, env, n_steps=20, additional_check=None)
 
     model.save('./test_her.zip')
     del model
@@ -96,12 +96,12 @@ def test_model_manipulation(model_class, goal_selection_strategy):
     env_ = BitFlippingEnv(N_BITS, continuous=model_class in [DDPG, SAC, TD3], max_steps=N_BITS)
     env_ = HERGoalEnvWrapper(env_)
 
-    model_predict(model, env_, n_steps=100, additional_check=None)
+    model_predict(model, env_, n_steps=20, additional_check=None)
 
     model.set_env(env)
-    model.learn(1000)
+    model.learn(150)
 
-    model_predict(model, env_, n_steps=100, additional_check=None)
+    model_predict(model, env_, n_steps=20, additional_check=None)
 
     assert model.n_sampled_goal == 3
 
@@ -109,9 +109,9 @@ def test_model_manipulation(model_class, goal_selection_strategy):
 
     env = BitFlippingEnv(N_BITS, continuous=model_class in [DDPG, SAC, TD3], max_steps=N_BITS)
     model = HER.load('./test_her', env=env)
-    model.learn(1000)
+    model.learn(150)
 
-    model_predict(model, env_, n_steps=100, additional_check=None)
+    model_predict(model, env_, n_steps=20, additional_check=None)
 
     assert model.n_sampled_goal == 3
 
