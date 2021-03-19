@@ -28,9 +28,13 @@ jobs:
       run: |
         sudo apt-get install libopenmpi-dev
         python -m pip install --upgrade pip
+        pip install wheel
         pip install .[mpi,tests,docs]
         # Use headless version
         pip install opencv-python-headless
+        # check MPI
+        mpirun -h
+        python -c "import mpi4py; print(mpi4py.__version__)"
     - name: Build the doc
       run: |
         make doc
