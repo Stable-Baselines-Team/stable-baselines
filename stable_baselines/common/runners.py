@@ -30,7 +30,7 @@ class AbstractEnvRunner(ABC):
         self.obs = np.zeros((n_envs,) + env.observation_space.shape, dtype=env.observation_space.dtype.name)
         self.obs[:] = env.reset()
         self.n_steps = n_steps
-        self.states = model.initial_state
+        self.states = model.initial_state  # pytype: disable=attribute-error
         self.dones = [False for _ in range(n_envs)]
         self.callback = None  # type: Optional[BaseCallback]
         self.continue_training = True

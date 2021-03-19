@@ -52,8 +52,8 @@ def test_model_multiple_learn_no_reset(model_class):
 def _check_reset_count(model, env: IdentityEnv):
     assert env.num_resets == 0
     _prev_runner = None
-    for _ in range(4):
-        model.learn(total_timesteps=400)
+    for _ in range(2):
+        model.learn(total_timesteps=300)
         # Lazy constructor for Runner fires upon the first call to learn.
         assert env.num_resets == 1
         if _prev_runner is not None:

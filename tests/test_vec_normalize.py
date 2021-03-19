@@ -176,6 +176,8 @@ def test_sync_vec_normalize():
 
 def test_mpi_runningmeanstd():
     """Test RunningMeanStd object for MPI"""
+    # Test will be run in CI before pytest is run
+    pytest.skip()
     return_code = subprocess.call(['mpirun', '--allow-run-as-root', '-np', '2',
                                    'python', '-m', 'stable_baselines.common.mpi_running_mean_std'])
     _assert_eq(return_code, 0)
@@ -185,6 +187,8 @@ def test_mpi_moments():
     """
     test running mean std function
     """
+    # Test will be run in CI before pytest is run
+    pytest.skip()
     subprocess.check_call(['mpirun', '--allow-run-as-root', '-np', '3', 'python', '-c',
                            'from stable_baselines.common.mpi_moments '
                            'import _helper_runningmeanstd; _helper_runningmeanstd()'])
