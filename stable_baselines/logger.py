@@ -137,7 +137,7 @@ class JSONOutputFormat(KVWriter):
                     kvs[key] = float(value)
                 else:
                     # otherwise, a value is a numpy array, serialize as a list or nested lists
-                    kvs[key] = value.tolist()
+                    kvs[key] = value.tolist()  # pytype: disable=attribute-error
         self.file.write(json.dumps(kvs) + '\n')
         self.file.flush()
 
