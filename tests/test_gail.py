@@ -91,6 +91,7 @@ def test_generate_callable(tmp_path):
     generate_expert_traj(dummy_expert, tmp_path / 'dummy_expert_cartpole', env, n_timesteps=0, n_episodes=10)
 
 
+@pytest.mark.xfail(reason="Not Enough Memory", strict=True)
 def test_pretrain_images(tmp_path):
     env = make_atari_env("PongNoFrameskip-v4", num_env=1, seed=0)
     env = VecFrameStack(env, n_stack=3)
