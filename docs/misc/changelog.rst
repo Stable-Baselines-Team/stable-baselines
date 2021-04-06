@@ -6,8 +6,18 @@ Changelog
 For download links, please look at `Github release page <https://github.com/hill-a/stable-baselines/releases>`_.
 
 
-Pre-Release 2.10.2a1 (WIP)
+Release 2.10.2 (2021-04-05)
 ---------------------------
+
+.. warning::
+
+    This package is in maintenance mode, please use `Stable-Baselines3
+    (SB3)`_ for an up-to-date version. You can find a `migration guide`_ in
+    SB3 documentation.
+
+
+.. _Stable-Baselines3 (SB3): https://github.com/DLR-RM/stable-baselines3
+.. _migration guide: https://stable-baselines3.readthedocs.io/en/master/guide/migration.html
 
 
 Breaking Changes:

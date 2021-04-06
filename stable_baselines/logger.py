@@ -132,12 +132,12 @@ class JSONOutputFormat(KVWriter):
     def writekvs(self, kvs):
         for key, value in sorted(kvs.items()):
             if hasattr(value, 'dtype'):
-                if value.shape == () or len(value) == 1:
+                if value.shape == () or len(value) == 1:  # pytype: disable=attribute-error
                     # if value is a dimensionless numpy array or of length 1, serialize as a float
                     kvs[key] = float(value)
                 else:
                     # otherwise, a value is a numpy array, serialize as a list or nested lists
-                    kvs[key] = value.tolist()
+                    kvs[key] = value.tolist()  # pytype: disable=attribute-error
         self.file.write(json.dumps(kvs) + '\n')
         self.file.flush()
 

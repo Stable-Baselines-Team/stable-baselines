@@ -1,4 +1,5 @@
 import os
+import warnings
 
 from stable_baselines.a2c import A2C
 from stable_baselines.acer import ACER
@@ -23,6 +24,11 @@ if mpi4py is not None:
 del mpi4py
 
 # Read version from file
-version_file = os.path.join(os.path.dirname(__file__), 'version.txt')
-with open(version_file, 'r') as file_handler:
+version_file = os.path.join(os.path.dirname(__file__), "version.txt")
+with open(version_file, "r") as file_handler:
     __version__ = file_handler.read().strip()
+
+
+warnings.warn(
+    "stable-baselines is in maintenance mode, please use [Stable-Baselines3 (SB3)](https://github.com/DLR-RM/stable-baselines3) for an up-to-date version. You can find a [migration guide](https://stable-baselines3.readthedocs.io/en/master/guide/migration.html) in SB3 documentation."
+)
