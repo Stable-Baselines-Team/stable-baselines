@@ -11,7 +11,7 @@ to recover a cost function and then learn a policy.
 
 Learning a cost function from expert demonstrations is called Inverse Reinforcement Learning (IRL).
 The connection between GAIL and Generative Adversarial Networks (GANs) is that it uses a discriminator that tries
-to seperate expert trajectory from trajectories of the learned policy, which has the role of the generator here.
+to separate expert trajectory from trajectories of the learned policy, which has the role of the generator here.
 
 .. note::
 

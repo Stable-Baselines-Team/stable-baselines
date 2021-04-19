@@ -52,7 +52,7 @@ with open(version_file, 'r') as file_handler:
 # -- Project information -----------------------------------------------------
 
 project = 'Stable Baselines'
-copyright = '2018-2020, Stable Baselines'
+copyright = '2018-2021, Stable Baselines'
 author = 'Stable Baselines Contributors'
 
 # The short X.Y version
@@ -125,7 +125,7 @@ html_logo = '_static/img/logo.png'
 
 
 def setup(app):
-    app.add_stylesheet("css/baselines_theme.css")
+    app.add_css_file("css/baselines_theme.css")
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

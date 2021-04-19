@@ -4,7 +4,7 @@ pytest:
 
 # Type check
 type:
-	pytype
+	pytype -j auto
 
 # Build the doc
 doc:

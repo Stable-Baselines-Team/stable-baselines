@@ -6,8 +6,18 @@ Changelog
 For download links, please look at `Github release page <https://github.com/hill-a/stable-baselines/releases>`_.
 
 
-Pre-Release 2.10.2a1 (WIP)
+Release 2.10.2 (2021-04-05)
 ---------------------------
+
+.. warning::
+
+    This package is in maintenance mode, please use `Stable-Baselines3
+    (SB3)`_ for an up-to-date version. You can find a `migration guide`_ in
+    SB3 documentation.
+
+
+.. _Stable-Baselines3 (SB3): https://github.com/DLR-RM/stable-baselines3
+.. _migration guide: https://stable-baselines3.readthedocs.io/en/master/guide/migration.html
 
 
 Breaking Changes:
@@ -21,12 +31,14 @@ Bug Fixes:
 ^^^^^^^^^^
 - Fixed calculation of the log probability of Diagonal Gaussian distribution
   when using ``action_probability()`` method (@SVJayanthi, @sunshineclt)
+- Fixed docker image build (@anj1)
 
 Deprecations:
 ^^^^^^^^^^^^^
 
 Others:
 ^^^^^^^
+- Faster tests, switched to GitHub CI
 
 Documentation:
 ^^^^^^^^^^^^^^
@@ -93,6 +105,7 @@ Documentation:
 - Added Slime Volleyball project (@hardmaru)
 - Added a table of the variables accessible from the ``on_step`` function of the callbacks for each algorithm (@PartiallyTyped)
 - Fix typo in README.md (@ColinLeongUDRI)
+- Fix typo in gail.rst (@roccivic)
 
 Release 2.10.0 (2020-03-11)
 ---------------------------
@@ -548,12 +561,12 @@ Release 2.4.0 (2019-01-17)
 Release 2.3.0 (2018-12-05)
 --------------------------
 
-- added support for storing model in file like object. (thanks to @erniejunior)
+- added support for storing model in file like object. (thanks to @ernestum)
 - fixed wrong image detection when using tensorboard logging with DQN
 - fixed bug in ppo2 when passing non callable lr after loading
 - fixed tensorboard logging in ppo2 when nminibatches=1
-- added early stoppping via callback return value (@erniejunior)
-- added more flexible custom mlp policies (@erniejunior)
+- added early stoppping via callback return value (@ernestum)
+- added more flexible custom mlp policies (@ernestum)
 
 
 Release 2.2.1 (2018-11-18)
@@ -726,11 +739,11 @@ Maintainers
 -----------
 
 Stable-Baselines is currently maintained by `Ashley Hill`_ (aka @hill-a), `Antonin Raffin`_ (aka `@araffin`_),
-`Maximilian Ernestus`_ (aka @erniejunior), `Adam Gleave`_ (`@AdamGleave`_) and `Anssi Kanervisto`_ (aka `@Miffyli`_).
+`Maximilian Ernestus`_ (aka @ernestum), `Adam Gleave`_ (`@AdamGleave`_) and `Anssi Kanervisto`_ (aka `@Miffyli`_).
 
 .. _Ashley Hill: https://github.com/hill-a
 .. _Antonin Raffin: https://araffin.github.io/
-.. _Maximilian Ernestus: https://github.com/erniejunior
+.. _Maximilian Ernestus: https://github.com/ernestum
 .. _Adam Gleave: https://gleave.me/
 .. _@araffin: https://github.com/araffin
 .. _@AdamGleave: https://github.com/adamgleave
@@ -749,3 +762,4 @@ Thanks to @bjmuld @iambenzo @iandanforth @r7vme @brendenpetersen @huvar @abhiskk
 @MarvineGothic @jdossgollin @SyllogismRXS @rusu24edward @jbulow @Antymon @seheevic @justinkterry @edbeeching
 @flodorner @KuKuXia @NeoExtended @PartiallyTyped @mmcenta @richardwu @tirafesi @caburu @johannes-dornheim @kvenkman @aakash94
 @enderdead @hardmaru @jbarsce @ColinLeongUDRI @shwang @YangRui2015 @sophiagu @OGordon100 @SVJayanthi @sunshineclt
+@roccivic @anj1

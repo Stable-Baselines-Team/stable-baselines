@@ -9,6 +9,17 @@ Welcome to Stable Baselines docs! - RL Baselines Made Easy
 `Stable Baselines <https://github.com/hill-a/stable-baselines>`_ is a set of improved implementations
 of Reinforcement Learning (RL) algorithms based on OpenAI `Baselines <https://github.com/openai/baselines>`_.
 
+
+.. warning::
+
+    This package is in maintenance mode, please use `Stable-Baselines3
+    (SB3)`_ for an up-to-date version. You can find a `migration guide`_ in
+    SB3 documentation.
+
+
+.. _Stable-Baselines3 (SB3): https://github.com/DLR-RM/stable-baselines3
+.. _migration guide: https://stable-baselines3.readthedocs.io/en/master/guide/migration.html
+
 Github repository: https://github.com/hill-a/stable-baselines
 
 RL Baselines Zoo (collection of pre-trained agents): https://github.com/araffin/rl-baselines-zoo
@@ -18,12 +29,6 @@ RL Baselines zoo also offers a simple interface to train, evaluate agents and do
 You can read a detailed presentation of Stable Baselines in the
 Medium article: `link <https://medium.com/@araffin/stable-baselines-a-fork-of-openai-baselines-reinforcement-learning-made-easy-df87c4b2fc82>`_
 
-.. note::
-
-  Stable-Baselines3 (PyTorch edition) beta is now online: https://github.com/DLR-RM/stable-baselines3
-
-
-.. Example of internal link: :ref:`ppo2`
 
 Main differences with OpenAI Baselines
 --------------------------------------
