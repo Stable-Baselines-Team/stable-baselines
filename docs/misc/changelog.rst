@@ -5,6 +5,25 @@ Changelog
 
 For download links, please look at `Github release page <https://github.com/hill-a/stable-baselines/releases>`_.
 
+Pre-Release 2.10.3a0 (WIP)
+---------------------------
+
+
+Breaking Changes:
+^^^^^^^^^^^^^^^^^
+
+New Features:
+^^^^^^^^^^^^^
+
+Bug Fixes:
+^^^^^^^^^^
+- Fixed bug in pretraining method that prevented from calling it twice.
+
+Deprecations:
+^^^^^^^^^^^^^
+
+Others:
+^^^^^^^
 
 Release 2.10.2 (2021-04-05)
 ---------------------------

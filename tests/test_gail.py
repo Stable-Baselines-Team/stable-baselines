@@ -90,6 +90,16 @@ def test_generate_callable(tmp_path):
         return env.action_space.sample()
     generate_expert_traj(dummy_expert, tmp_path / 'dummy_expert_cartpole', env, n_timesteps=0, n_episodes=10)
 
+def test_pretrain_twice(tmp_path):
+    """
+    Test pretraining twice in the same execution.
+    """
+    dataset = ExpertDataset(expert_path=EXPERT_PATH_PENDULUM, traj_limitation=10,
+                            sequential_preprocessing=True, verbose=0)
+    model = PPO2("MlpPolicy", "Pendulum-v0")
+    model.pretrain(dataset, n_epochs=5)
+    model.pretrain(dataset, n_epochs=5)
+    del dataset, model
 
 @pytest.mark.xfail(reason="Not Enough Memory", strict=False)
 def test_pretrain_images(tmp_path):

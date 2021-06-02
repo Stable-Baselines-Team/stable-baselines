@@ -162,16 +162,18 @@ def generate_expert_traj(model, save_path=None, env=None, n_timesteps=0,
 
     assert len(observations) == len(actions)
 
+    # pytype: disable=attribute-error
     numpy_dict = {
         'actions': actions,
         'obs': observations,
         'rewards': rewards,
         'episode_returns': episode_returns,
         'episode_starts': episode_starts
-    }  # type: Dict[str, np.ndarray]
+    }
 
     for key, val in numpy_dict.items():
         print(key, val.shape)
+    # pytype: enable=attribute-error
 
     if save_path is not None:
         np.savez(save_path, **numpy_dict)
