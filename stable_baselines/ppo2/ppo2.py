@@ -298,7 +298,11 @@ class PPO2(ActorCriticRLModel):
                 [self.pg_loss, self.vf_loss, self.entropy, self.approxkl, self.clipfrac, self._train], td_map)
 
         return policy_loss, value_loss, policy_entropy, approxkl, clipfrac
-
+    
+    def set_env(self,env):
+        super().set_env(env)
+        self.n_batch = self.n_envs * self.n_steps
+    
     def learn(self, total_timesteps, callback=None, log_interval=1, tb_log_name="PPO2",
               reset_num_timesteps=True):
         # Transform to callable if needed

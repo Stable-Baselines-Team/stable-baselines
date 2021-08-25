@@ -241,6 +241,10 @@ class A2C(ActorCriticRLModel):
 
         return policy_loss, value_loss, policy_entropy
 
+    def set_env(self,env):
+        super().set_env(env)
+        self.n_batch = self.n_envs * self.n_steps
+
     def learn(self, total_timesteps, callback=None, log_interval=100, tb_log_name="A2C",
               reset_num_timesteps=True):
 

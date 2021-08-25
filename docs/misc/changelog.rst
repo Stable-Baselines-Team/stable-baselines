@@ -18,6 +18,7 @@ New Features:
 Bug Fixes:
 ^^^^^^^^^^
 - Fixed bug in pretraining method that prevented from calling it twice.
+- Fixed a bug where a crash would occur if a PPO2 model was trained in a vectorized environment, saved and subsequently loaded, then trained in a vectorized environment with a different length
 
 Deprecations:
 ^^^^^^^^^^^^^
