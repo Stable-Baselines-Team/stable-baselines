@@ -37,7 +37,7 @@ def evaluate_policy(
     :param return_episode_rewards: (Optional[float]) If True, a list of reward per episode
         will be returned instead of the mean.
     :return: (float, float) Mean reward per episode, std of reward per episode
-        returns ([float], [int]) when ``return_episode_rewards`` is True
+        returns ([float], [int]) episode rewards and lengths when ``return_episode_rewards`` is True
     """
     if isinstance(env, VecEnv):
         assert env.num_envs == 1, "You must pass only one environment when using this function"
