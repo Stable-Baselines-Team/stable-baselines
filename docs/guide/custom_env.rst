@@ -69,7 +69,7 @@ To check that your environment follows the gym interface, please use:
 We have created a `colab notebook <https://colab.research.google.com/github/araffin/rl-tutorial-jnrr19/blob/master/5_custom_gym_env.ipynb>`_ for
 a concrete example of creating a custom environment.
 
-You can also find a `complete guide online <https://github.com/openai/gym/blob/master/docs/creating-environments.md>`_
+You can also find a `complete guide online <https://www.gymlibrary.ml/content/environment_creation/>`_
 on creating a custom Gym environment.
 
 
