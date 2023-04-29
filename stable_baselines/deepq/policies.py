@@ -1,5 +1,5 @@
 import tensorflow as tf
-import tensorflow.contrib.layers as tf_layers
+import tf_slim as tf_layers
 import numpy as np
 from gym.spaces import Discrete
 
@@ -38,7 +38,7 @@ class DQNPolicy(BasePolicy):
         """
         Set up action probability
         """
-        with tf.variable_scope("output", reuse=True):
+        with tf.compat.v1.variable_scope("output", reuse=True):
             assert self.q_values is not None
             self.policy_proba = tf.nn.softmax(self.q_values)
 
@@ -100,13 +100,13 @@ class FeedForwardPolicy(DQNPolicy):
         if layers is None:
             layers = [64, 64]
 
-        with tf.variable_scope("model", reuse=reuse):
-            with tf.variable_scope("action_value"):
+        with tf.compat.v1.variable_scope("model", reuse=reuse):
+            with tf.compat.v1.variable_scope("action_value"):
                 if feature_extraction == "cnn":
                     extracted_features = cnn_extractor(self.processed_obs, **kwargs)
                     action_out = extracted_features
                 else:
-                    extracted_features = tf.layers.flatten(self.processed_obs)
+                    extracted_features = tf.compat.v1.layers.flatten(self.processed_obs)
                     action_out = extracted_features
                     for layer_size in layers:
                         action_out = tf_layers.fully_connected(action_out, num_outputs=layer_size, activation_fn=None)
@@ -117,7 +117,7 @@ class FeedForwardPolicy(DQNPolicy):
                 action_scores = tf_layers.fully_connected(action_out, num_outputs=self.n_actions, activation_fn=None)
 
             if self.dueling:
-                with tf.variable_scope("state_value"):
+                with tf.compat.v1.variable_scope("state_value"):
                     state_out = extracted_features
                     for layer_size in layers:
                         state_out = tf_layers.fully_connected(state_out, num_outputs=layer_size, activation_fn=None)
